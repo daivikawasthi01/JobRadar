@@ -1,0 +1,6 @@
+aiohttp
+pyyaml
+openpyxl
+pandas
+beautifulsoup4
+pytest

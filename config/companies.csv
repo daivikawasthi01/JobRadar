@@ -1,0 +1,6 @@
+# name,ats,slug,tier   (tier 1 = dream companies, 2 = normal, 3 = no matching jobs now)
+# The 3 rows below are UNVERIFIED examples. Phase 1 checks them live; replace any that 404.
+name,ats,slug,tier
+Stripe,greenhouse,stripe,1
+Palantir,lever,palantir,2
+Ramp,ashby,ramp,2

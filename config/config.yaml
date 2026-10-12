@@ -1,0 +1,78 @@
+filters:
+  roles_include:
+    - associate software engineer
+    - associate engineer
+    - associate developer
+    - software engineer
+    - software developer
+    - software development engineer
+    - sde
+    - full stack
+    - fullstack
+    - full-stack
+    - backend engineer
+    - back-end engineer
+    - back end engineer
+    - backend developer
+    - frontend engineer
+    - front-end engineer
+    - frontend developer
+    - ai engineer
+    - ml engineer
+    - machine learning engineer
+    - data engineer
+    - python developer
+    - graduate engineer trainee
+    - engineer trainee
+    - trainee
+    - new grad
+    - junior
+  roles_exclude_title:
+    - senior
+    - sr
+    - lead
+    - principal
+    - staff
+    - manager
+    - director
+    - head
+    - architect
+    - vp
+    - intern            # remove this line to include internships
+  entry_level_title_tokens:
+    - associate
+    - junior
+    - jr
+    - trainee
+    - graduate
+    - new grad
+    - entry level
+    - sde-1
+    - sde 1
+    - sde1
+  max_min_experience: 2
+  keep_unknown_experience: true
+  countries: [India]
+  include_remote_unspecified: false
+
+polling:
+  tier2_min_interval_minutes: 55
+  tier3_min_interval_minutes: 235
+  concurrency: 30
+  timeout_seconds: 15
+  retries: 3
+  user_agent: "JobRadar/1.0 (personal job search)"
+
+alerts:
+  email_enabled: true
+  max_jobs_per_email: 100
+  daily_digest_hour_ist: 8
+  ntfy_topic: ""
+
+export:
+  excel_path: data/jobs.xlsx
+
+limits:
+  disable_after_consecutive_404: 5
+  close_after_missed_cycles: 2
+  empty_streak_before_close: 3

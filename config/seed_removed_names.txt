@@ -1,0 +1,364 @@
+# Names removed by the "tech roles in India" prune. Copy any back into seed_company_names.txt to restore.
+37signals
+ADIA Abu Dhabi India Advisors
+Aditya birla jewels
+Afcons Infrastructure
+Agile Capital Services
+AlixPartners
+Alkem Labs
+Allbirds
+Alok Masterbatch
+Alvarez & Marsal
+Amican Financial
+Amphenol
+Analysis Group
+Andritz Hydro
+Aplazo
+Apollo Global Management
+Archer
+Ares Management
+Arthur D. Little
+Arvind Fashions
+AtkinsRealis
+Atrium Ventures
+Automattic
+Avasant
+Avatar Skincare
+Avery Dennison
+Axxela
+Bain & Company
+Barco Electronics
+Basecamp
+Baxter International
+BBC Studios
+Bbc Worldwide
+Bechtel
+Beehiiv
+Beta Technologies
+BGR Energy
+Bharat Serums and Vaccines
+Bira91
+Bird
+Blissclub
+Blume Ventures
+Boom Supersonic
+BPTP
+Brilliant
+Brookfield Asset Management
+Buffer
+Capital power
+Career Plan B
+Carlyle Group
+Centum Electronics
+Charles River Associates
+Chewy
+Chiratae Ventures
+Climate Asia
+Climeworks
+Clix Capital
+Coca-Cola
+Codecademy
+Colgate-Palmolive
+Commonwealth Fusion
+Cornerstone Research
+Counterpoint Research
+Coupang
+CPPIB
+Crepdog Crew
+Crocs
+CTBC Bank
+Cubiz Capital MD
+Dalberg
+Danfoss
+DataCamp
+Deliveroo
+Delta Electronics
+Dentsu
+Depop
+Deutsche
+Doist
+Dolat Capital
+Dr Lal PathLabs
+Duff & Phelps
+Duolingo
+Earth Rythm
+Elevation Capital
+Emami
+Endress+Hauser
+Energy Infratech
+Euromonitor
+Evercore
+Everest Group
+Evermore Global IFSE
+Exicom Tele-Systems
+Faire
+Fast Retailing
+Fast Retaling
+Fidelity
+FIITJEE
+Fischer Jordan
+Fluor Corporation
+Forbes Marshall
+Form Energy
+Forrester
+Foxconn
+freeCodeCamp
+Frido
+Frost & Sullivan
+Frostreats
+FTI Consulting
+Gallup
+GDi Partners
+Getaround
+Ghost
+GIC Singapore
+Giva
+GlobalData
+Glossier
+GOAT
+Godrej Consumer partner
+Gojek
+GoTo
+Grab
+Grant Thornton
+Grant Thornton Bharat
+Greenlam Industries
+GRG Health
+Grindr
+Grindwell Norton
+Guidehouse
+Hatch
+Healthians
+Helion
+HEX Advisory Group
+HFS Research
+Himachal Futuristic
+Hinduja Housing
+Hindustan Power
+Hines
+Hotstar
+Houlihan Lokey
+Human Holdings
+Huron Consulting
+ICRA
+IDC
+Impetus
+Indofast
+Indus tower
+Infineon
+Ingersoll Rand
+Ipsos
+IREO
+ISG
+ITS Planners and Engineers
+ITT
+Jacobs
+Jaro Education
+Jefferies
+Joby
+JTP
+Jubilant agri and consumer product
+Jubilant Bhartia
+Kahoot
+Kalaari Capital
+Kearney
+Kenvue
+Keventers
+Khan Academy
+KKR
+Klarna
+KMK Consulting
+Kohler
+Kroll
+L'Oreal
+L.E.K. Consulting
+Lapp
+Lazada
+Lazard
+Legrand
+Licious Tech
+Lifestyle International
+Lime
+Linde Engineering
+Lohum
+Lucid Motors
+Luxasia
+Manglam ELectricals
+Manipal Hospitals
+Mansukh Securities and Finance
+Mars Cosmetics
+Masterclass
+Matrix Partners
+McDermott
+Medgenome
+MedGenome Labs
+Medium
+Medpace
+Meesho Tech
+Megger
+Metro Cash and Carry
+Metropolis
+Metropolis Healthcare
+Midea
+Midea group
+Minimalist
+Mintel
+Mirana Toys
+Mitsubishi Financial
+Moelis
+Monzo
+Morgan Stanely
+Morgon Stanley
+Mozilla
+Mrsool
+Mubadala Capital
+N26
+Narayana Health
+Neo Wealth & Asset Management
+Nestle
+Netguru
+NEWME
+Nextdoor
+Nexus Venture Partners
+Nomura Consulting
+Northvolt
+Norwest Venture Partners
+Nxp Semiconductor
+Ohmium
+Oliver Wyman
+Open Destinations
+Options Group
+Oura
+Pace Stock Broking Services
+Pachama
+Paharpur Cooling Towers
+Panacea Biotech
+Patreon
+PCBL
+Peak Sustainability Ventures
+Peloton
+PepsiCo
+Perfetti Van Melle
+Pfizer
+Phoenix Contact
+Pidilite
+PIF Public Investment Fund
+Piramal Finance Sales and Service
+Pluswealth Capital Management
+Poshmark
+Posist Technologies Private
+Praxis Global
+Procter & Gamble
+Procter and Gamble Hygiene
+PUMA
+Punjab National Bank Of India
+Purnartha Investment Advisers
+Qiagen
+QuantumScape
+Quizlet
+Ram fincorp
+Rapido Captain
+Redcliffe Labs
+Redseer Strategy Consultants
+Redwood Materials
+Relativity Space
+Relaxo
+Renegade Insurance
+Rivian
+Rivian Automotive
+Rocket Lab
+Roland Berger
+Rothschild & Co
+Saipem
+Samagra
+Samsung Delhi
+Samsung E&A
+Samsung Heavy Industries
+Samsung R&d Noida
+Sea Limited
+Serum Institute of
+Shopee
+Shoppers Stop
+Shubhalakshmi Polyesters
+Siemens Disw
+Sila
+Simon-Kucher
+SKF
+Skillshare
+SMC Global Securities
+Snitch
+Space-Y Capital
+Spectal Management
+Spencers Retail
+Staqu Tech
+Statcon Electronics
+Statcon Electronics India Limited & Statcon Powtech
+Statista
+StockX
+Strategy&
+Strava
+Stripe Climate
+Substack
+Sugar
+Sugar Cosmetics
+Sundaram Clayton
+Sunrun
+Sutra Management
+Synapse Biopharma
+Synergy consulting
+Tanishq
+Tata 1mg Labs
+Technip Energies
+Tekatronix
+Temasek Holdings
+TensorGo Technologies
+TerraPower
+Tesla Energy
+Tex Fasteners
+The Sleep Company
+Thermo Fisher Scientific
+Thermofisher
+ThredUp
+Thyrocare
+Tier
+TPG Capital
+Tractebel
+Treatwell
+Tristar Group
+Triune Energy
+Turo
+Unilever
+Veritas Finance
+Vikabh Securities
+Virginia Transformer Corporation
+Voi
+Voodoo
+Voylla
+Wabtec Corporation
+Walter Bushnell
+Wapcos
+Warby Parker
+Watershed
+West Monroe
+Whatnot
+WHEELS Global Foundation
+Whitehat Jr
+Whoop
+Wikimedia Foundation
+Wipro Infrastructure Engineering
+Wns Global
+WNS Global Services
+Wockhardt
+Worley
+Yaskawa
+Yelp
+Yugabyte DB
+Zalando
+Zanskar Research
+Zanskar Securities
+Zeno Health
+Zinnov
+Zinnov Management Consulting
+Zoho Corporation
+Zuari Industries
+Zydus Lifescience

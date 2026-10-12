@@ -1,0 +1,48 @@
+name: crawl
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: crawl
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          ref: state
+          path: data
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run crawler
+        run: python -m src.main run
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_TO: ${{ secrets.ALERT_TO }}
+
+      - name: Save state (single force-pushed commit, no history bloat)
+        working-directory: data
+        run: |
+          git config user.name "jobradar-bot"
+          git config user.email "jobradar-bot@users.noreply.github.com"
+          git checkout --orphan new-state
+          git add -A
+          git commit -m "state $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push -f origin new-state:state

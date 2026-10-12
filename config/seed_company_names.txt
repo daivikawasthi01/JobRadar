@@ -1,0 +1,2045 @@
+# JobRadar seed company names
+# Names only, written from memory. NOT verified. The discover command checks each one against real
+# ATS endpoints and silently drops names that don't match. Junk/defunct names are harmless.
+# Lines starting with # are comments. One company per line.
+
+# ---------- India: fintech, payments, banking ----------
+Razorpay
+Zerodha
+Groww
+CRED
+PhonePe
+Paytm
+Paytm Money
+Cashfree Payments
+Juspay
+Pine Labs
+BharatPe
+MobiKwik
+Open Financial Technologies
+Zeta
+Perfios
+Signzy
+IDfy
+M2P Fintech
+Setu
+Decentro
+Yubi
+Rupeek
+Slice
+Jupiter Money
+Fi Money
+Niyo
+OneCard
+KreditBee
+Navi Technologies
+Lendingkart
+Capital Float
+Khatabook
+OkCredit
+Vyapar
+Upstox
+Angel One
+5paisa
+Dhan
+Smallcase
+INDmoney
+Kuvera
+Scripbox
+ET Money
+Fisdom
+Policybazaar
+Acko
+Digit Insurance
+InsuranceDekho
+Turtlemint
+Mintifi
+MoneyView
+Paisabazaar
+CreditMantri
+Stashfin
+Simpl
+Bajaj Finserv
+Bajaj Finance
+HDFC Bank
+ICICI Bank
+Axis Bank
+Kotak Mahindra Bank
+IDFC First Bank
+Yes Bank
+Tata Capital
+Aditya Birla Capital
+Edelweiss
+FinBox
+PayU
+BillDesk
+Instamojo
+Easebuzz
+ClearTax
+Stable Money
+Jar
+Lentra
+Protean
+Paysense
+Zest Money
+Ayu
+Mswipe
+Razorpay Capital
+Credgenics
+Sarvagya
+Freo
+Univest
+Sahamati
+Finarkein
+Cred Club
+
+# ---------- India: consumer internet, commerce, mobility ----------
+Swiggy
+Zomato
+Blinkit
+Zepto
+BigBasket
+Flipkart
+Myntra
+Meesho
+Nykaa
+Ajio
+Tata Neu
+Tata 1mg
+Lenskart
+Urban Company
+Ola
+Ola Electric
+Ather Energy
+Rapido
+BlackBuck
+Porter
+Delhivery
+Shadowfax
+Ecom Express
+Xpressbees
+Shiprocket
+Udaan
+Zetwerk
+Moglix
+Jumbotail
+Infra.Market
+OfBusiness
+Livspace
+HomeLane
+NoBroker
+Square Yards
+Housing.com
+MagicBricks
+99acres
+CarDekho
+Cars24
+Spinny
+Droom
+Park+
+Licious
+FreshToHome
+Country Delight
+Cult.fit
+Rebel Foods
+Magicpin
+EazyDiner
+Pepperfry
+Wakefit
+Bewakoof
+FirstCry
+Purplle
+Honasa Consumer
+boAt
+Mensa Brands
+GlobalBees
+Dream11
+Games24x7
+Mobile Premier League
+Nazara Technologies
+Zupee
+WinZO
+Junglee Games
+Rooter
+Eloelo
+ShareChat
+Dailyhunt
+VerSe Innovation
+Pratilipi
+Kuku FM
+Pocket FM
+Glance
+InMobi
+Inshorts
+JioHotstar
+ZEE5
+MX Player
+Gaana
+JioSaavn
+MakeMyTrip
+Cleartrip
+ixigo
+EaseMyTrip
+Yatra
+redBus
+Treebo
+OYO
+Zostel
+Pickyourtrail
+Vahan
+Vogo
+Yulu
+Bounce
+Zoomcar
+Drivezy
+Servify
+Cashify
+Games Kraft
+Sportskeeda
+Dunzo
+Mamaearth
+Bluestone
+CaratLane
+FabIndia
+Pharmeasy
+Netmeds
+Apollo 24/7
+Shopsy
+Snapdeal
+Paytm Mall
+Tata CLiQ
+Reliance Retail
+Reliance Jio
+JioMart
+Hyperpure
+Eternal
+Zomato Hyperpure
+ShopKirana
+Ninjacart
+DeHaat
+Bijak
+Waycool
+Otipy
+Kisan Network
+Jai Kisan
+AgroStar
+Gramophone
+CropIn
+Arya.ag
+Samunnati
+
+# ---------- India: edtech ----------
+Unacademy
+PhysicsWallah
+upGrad
+BYJU'S
+Vedantu
+Eruditus
+Simplilearn
+Scaler
+Masai School
+Newton School
+Coding Ninjas
+GeeksforGeeks
+Great Learning
+Testbook
+Cuemath
+LEAD School
+Teachmint
+Classplus
+Leverage Edu
+Skillsoft
+Imarticus
+Springboard
+Almabetter
+Internshala
+Naukri
+Apna
+WorkIndia
+Instahyre
+Cutshort
+Hirect
+Foundit
+Shine
+Wellfound
+Uplers
+Turing
+Toptal
+
+# ---------- India: healthtech ----------
+Practo
+mfine
+Pristyn Care
+Medikabazaar
+Qure.ai
+Niramai
+Tricog Health
+Eka Care
+Even Healthcare
+Truemeds
+HealthifyMe
+Innovaccer
+Cure.fit
+Novartis
+Cognizant Healthcare
+Ultrahuman
+Noise
+Fitbit
+Cult Sport
+Sugar.fit
+Wysa
+YourDOST
+Lissun
+Amaha
+Mosaic Wellness
+
+# ---------- India: SaaS, AI, data, developer tools ----------
+Zoho
+Freshworks
+Chargebee
+Postman
+BrowserStack
+Hasura
+Druva
+Whatfix
+CleverTap
+MoEngage
+WebEngage
+Netcore Cloud
+Gupshup
+Exotel
+Kaleyra
+Yellow.ai
+Haptik
+Uniphore
+Observe.AI
+Sprinklr
+LeadSquared
+Darwinbox
+Keka
+Zenoti
+Mindtickle
+Capillary Technologies
+Icertis
+Pepper Content
+Tally Solutions
+Atlan
+Hevo Data
+RudderStack
+Appsmith
+LambdaTest
+Testsigma
+Contentstack
+Wingify
+Zluri
+Sirion
+SpotDraft
+HighRadius
+Krutrim
+Sarvam AI
+Gnani.ai
+CoRover
+Wadhwani AI
+Fractal Analytics
+Mu Sigma
+Tredence
+LatentView Analytics
+Tiger Analytics
+Sigmoid
+Quantiphi
+Course5 Intelligence
+Fynd
+Eka Software
+Zycus
+Mobius
+Kissflow
+Vymo
+Rapid7 India
+Squadcast
+Last9
+Treebo Tech
+Bureau
+Lucidity
+Atomicwork
+Hyperverge
+Skit.ai
+Murf AI
+Gamma
+Rephrase.ai
+Verloop.io
+Vahan.ai
+Ola Maps
+Ideaforge
+Pixxel
+Skyroot Aerospace
+Agnikul Cosmos
+Dhruva Space
+Bellatrix Aerospace
+Digantara
+Tata Elxsi
+Ather
+Raphe mPhibr
+Zomato Labs
+Rubrik
+Cohesity
+Nutanix
+Veritas
+Commvault
+Pure Storage
+NetApp
+Zscaler
+Qualys
+Sophos
+Tenable
+Proofpoint
+Imperva
+Cloudera
+Informatica
+Talend
+Teradata
+ThoughtSpot
+Tableau
+Qlik
+Alteryx
+MicroStrategy
+Anaplan
+Coupa
+BlackLine
+Zuora
+Newgen Software
+Ramco Systems
+Intellect Design Arena
+Nucleus Software
+Sonata Software
+Mastek
+Happiest Minds
+Cyient
+Zensar
+Birlasoft
+Coforge
+Persistent Systems
+Hexaware
+Mphasis
+LTIMindtree
+Tech Mahindra
+HCLTech
+Wipro
+Infosys
+TCS
+Cognizant
+Capgemini
+Accenture
+Deloitte
+PwC
+EY
+KPMG
+IBM
+Virtusa
+GlobalLogic
+Nagarro
+EPAM Systems
+Thoughtworks
+Globant
+Endava
+Publicis Sapient
+Altimetrik
+Wissen Technology
+Ness Digital Engineering
+Sutherland
+Genpact
+WNS
+Firstsource
+Conduent
+Concentrix
+Teleperformance
+TaskUs
+Startek
+EXL Service
+Hinduja Global Solutions
+Tata Consultancy Services
+Tata Communications
+Airtel
+Vodafone Idea
+Jio Platforms
+
+# ---------- India: quant, trading, deep tech, R&D centers ----------
+Arcesium
+D. E. Shaw
+Directi
+Media.net
+Radix
+Tower Research Capital
+Graviton Research Capital
+Quadeye
+AlphaGrep
+NK Securities
+Walmart Global Tech
+Target
+Lowe's
+Home Depot
+Optiver
+Jane Street
+Hudson River Trading
+DRW
+Citadel
+Two Sigma
+WorldQuant
+Millennium
+Squarepoint Capital
+Qube Research & Technologies
+Goldman Sachs
+Morgan Stanley
+JPMorgan Chase
+Citi
+Deutsche Bank
+Barclays
+UBS
+Wells Fargo
+BlackRock
+Fidelity Investments
+Visa
+Mastercard
+American Express
+PayPal
+Standard Chartered
+HSBC
+BNY Mellon
+State Street
+Northern Trust
+Nomura
+Macquarie
+Bank of America
+Credit Suisse
+Bloomberg
+Refinitiv
+S&P Global
+Moody's
+MSCI
+FactSet
+Morningstar
+Nasdaq
+NSE
+BSE
+CRISIL
+
+# ---------- Global big tech ----------
+Google
+Microsoft
+Amazon
+Apple
+Meta
+Netflix
+Adobe
+Salesforce
+Oracle
+SAP
+Intel
+NVIDIA
+AMD
+Qualcomm
+Cisco
+VMware
+Broadcom
+Dell Technologies
+HP
+HPE
+Intuit
+Atlassian
+Uber
+Airbnb
+Stripe
+Shopify
+Twilio
+Okta
+Snowflake
+Databricks
+MongoDB
+Confluent
+Elastic
+Splunk
+ServiceNow
+Workday
+Zoom
+Dropbox
+Box
+Autodesk
+PTC
+Ansys
+Dassault Systemes
+Bentley Systems
+Trimble
+Unity
+Epic Games
+Electronic Arts
+Ubisoft
+Activision Blizzard
+Zynga
+Roblox
+Discord
+Reddit
+Pinterest
+Snap
+LinkedIn
+Spotify
+Booking.com
+Expedia
+TripAdvisor
+Palo Alto Networks
+Fortinet
+CrowdStrike
+Cloudflare
+Akamai
+Fastly
+Datadog
+New Relic
+Dynatrace
+PagerDuty
+GitLab
+GitHub
+JetBrains
+HashiCorp
+Docker
+Red Hat
+SUSE
+Canonical
+HubSpot
+Zendesk
+Intercom
+Sinch
+Plivo
+Bandwidth
+RingCentral
+Five9
+Genesys
+NICE
+Verint
+Marvell
+Arm
+Synopsys
+Cadence
+Siemens
+Honeywell
+General Electric
+Bosch
+Philips
+Samsung
+Sony
+Nokia
+Ericsson
+Texas Instruments
+Analog Devices
+Micron
+Western Digital
+Applied Materials
+Lam Research
+KLA
+Juniper Networks
+Arista Networks
+Extreme Networks
+Aruba
+Ciena
+Infinera
+Cadence Design Systems
+Mentor Graphics
+Keysight
+National Instruments
+Rockwell Automation
+Schneider Electric
+ABB
+Emerson
+Yokogawa
+Tesla
+Continental
+Mercedes-Benz Research and Development India
+L&T Technology Services
+KPIT Technologies
+Tata Technologies
+
+# ---------- Global startups & scaleups (heavy Greenhouse / Lever / Ashby users) ----------
+OpenAI
+Anthropic
+Mistral AI
+Cohere
+Hugging Face
+Scale AI
+Perplexity
+Replit
+Vercel
+Netlify
+Supabase
+Linear
+Notion
+Figma
+Canva
+Airtable
+Retool
+Ramp
+Brex
+Plaid
+Rippling
+Deel
+Gusto
+Mercury
+Chime
+Robinhood
+Coinbase
+Kraken
+Gemini
+Circle
+Ripple
+Alchemy
+Chainalysis
+Consensys
+Polygon
+CoinDCX
+CoinSwitch
+WazirX
+Mudrex
+ZebPay
+Instacart
+DoorDash
+Lyft
+Rakuten
+Mercari
+Revolut
+Wise
+Adyen
+Checkout.com
+Rapyd
+Airwallex
+Anduril
+Palantir
+SpaceX
+Samsara
+Flexport
+Gong
+Glean
+Writer
+Jasper
+Runway
+Midjourney
+Stability AI
+Character.AI
+Inflection
+Adept
+Together AI
+Anyscale
+Weights & Biases
+Pinecone
+Weaviate
+Chroma
+LangChain
+LlamaIndex
+Modal
+Fireworks AI
+Groq
+Cerebras
+SambaNova
+Lambda
+CoreWeave
+Crusoe
+Vast.ai
+Render
+Fly.io
+Railway
+Neon
+PlanetScale
+Cockroach Labs
+SingleStore
+Redis
+Couchbase
+Temporal
+Postman Labs
+Sentry
+PostHog
+Mixpanel
+Amplitude
+Segment
+Heap
+FullStory
+LaunchDarkly
+Split
+Optimizely
+Statsig
+Grafana Labs
+Honeycomb
+Chronosphere
+Cribl
+Sumo Logic
+Lightstep
+Snyk
+Wiz
+Lacework
+Orca Security
+Abnormal Security
+Vanta
+Drata
+Secureframe
+1Password
+Bitwarden
+Tailscale
+Cloudsmith
+Sourcegraph
+Cursor
+Codeium
+Tabnine
+Cognition
+Sourcery
+Zed
+Warp
+Raycast
+Arc
+The Browser Company
+Superhuman
+Loom
+Miro
+Mural
+Lucid
+Asana
+Monday.com
+ClickUp
+Coda
+Slite
+Calendly
+Typeform
+Webflow
+Framer
+Wix
+Squarespace
+Bubble
+Zapier
+Workato
+Tray.io
+Make
+n8n
+UiPath
+Automation Anywhere
+Celonis
+Appian
+Pega
+Mulesoft
+Boomi
+Fivetran
+dbt Labs
+Airbyte
+Census
+Hightouch
+Monte Carlo
+Great Expectations
+Dagster
+Prefect
+Astronomer
+Starburst
+Dremio
+ClickHouse
+Materialize
+Rockset
+Imply
+StarTree
+Firebolt
+Motherduck
+Hex
+Mode
+Sigma Computing
+Preset
+Metabase
+Lightdash
+Observable
+Streamlit
+Gradio
+Weights and Biases
+Labelbox
+Snorkel AI
+Surge AI
+Appen
+Toloka
+Samasource
+Invisible Technologies
+Turing.com
+Andela
+Crossover
+Gitlab Inc
+Zapier Inc
+Coursera
+Udemy
+edX
+Chegg
+Pluralsight
+Udacity
+Nerdwallet
+Credit Karma
+SoFi
+Affirm
+Block
+Square
+Toast
+Lightspeed
+Shopify Plus
+BigCommerce
+Etsy
+eBay
+Wayfair
+Garmin
+Fitbit Inc
+GoPro
+Sonos
+Roku
+Vimeo
+Twitch
+Bumble
+Match Group
+Hinge
+Tinder
+Zillow
+Redfin
+Opendoor
+Compass
+Airtable Inc
+Carta
+Pilot
+Bill.com
+Expensify
+Navan
+TripActions
+Tripadvisor Inc
+Hopper
+Kayak
+Skyscanner
+Trivago
+Amadeus
+Sabre
+Travelport
+Agoda
+Klook
+GetYourGuide
+Viator
+Nuro
+Waymo
+Cruise
+Aurora
+Zoox
+Wayve
+Mobileye
+Luminar
+Ouster
+Velodyne
+Skydio
+Zipline
+Wing
+Enphase
+
+# ---------- Added from your lists (cleaned, deduped) ----------
+10x Construction
+1digitalstacks.ai
+24/7 Software
+A1Apps
+A2G services
+AAF
+Aaj supply
+AasanJobs
+AB InBev
+Abacus.AI
+ABB Group
+ABB Robotics
+ABG
+AbilityEx
+Abiroo Strategyz
+Academor
+Accelerize 360
+Accio Job
+Accolite
+Accord Innovations
+Accordion
+Acme Group
+Acmegrade
+Acousto Scan
+Act21
+Addverb Technologies
+Adept AI
+Aditya Birla Pivot
+Admire Softech
+Adrosonic
+Adsfluxion
+AdvantageClub.ai
+Affinsys
+Aha!
+AI21 Labs
+Aidash
+Air India
+Aira Matrix
+Airblack
+Airbus
+Airtel Payments Bank
+Al Hifusion
+Albaconnect
+ALgo AI
+Algo University
+Algoquant Fintech
+AlgoSec
+Alight Solutions
+Allium
+Alphonso
+Alsym
+Altered Security
+Amantya Tech
+Ambak
+Amdocs
+Amrop Research
+Amway
+Analytics Vidhya
+Anand group
+ANSR
+Antino
+Applogic Networks
+Appointy
+Apport Software Solutions
+AppsForBharat
+Aptiv
+AQR capital
+Arata
+Argmac
+Argus Infotech
+Arintra
+Arisinfra Solutions
+Arm Embedded Technologies
+ArmorCode
+Arrise Solutions
+ASM Technology
+ASML
+Astra Microwave
+AstraZeneca
+Astro Talk
+Athena Education
+Athena Global Technologies
+Athena Technology Solutions
+Atlys
+Attentive.ai
+Audify
+Aumyaa Consulting Services
+Auro AI
+Auro Digital
+AutoRABIT
+Auxia
+AuxoAI
+Avaada Group
+Avant Garde
+Avizva
+Awiros
+Axciom
+Axelerant
+Axiscades
+Axtria
+Axxela Research & Analytics
+Aye Finance
+Baaz Bikes
+Baazi Games
+Bachatt
+Bahwana Cybertek
+Bain Capability Network
+Bajaj Health finserv
+Baker Hughes
+Balkan Id
+Barco
+Battery Smart
+Baxter
+Baya Systems
+BazaarVoice
+Becton Dickinson
+BEL
+BELZABAR Consulting
+Benori Knowledge
+BES Consultants
+Best Buy
+Betsol
+Better PLace
+Bhanzu
+Bhavna Software
+BHFT
+Big Binary
+Binocs co
+BioBrain Insights
+Bitgo
+Biz2X
+Black And Green
+BLACK cat
+Blazop
+Blue Matter
+Blue prism
+Blue Yonder
+BlueBird R&D
+BlueKaktus
+BluSmart
+BMC Sofftware
+BNP Paribas
+BNY
+Boeing
+Bosch Rexroth
+Boston Consulting Group
+Bounce Infinity
+Bourntec Solutions
+Branch International
+Brane Enterprises
+Bright Money
+Brillio
+Broadridge
+BT Group
+BytesView
+Bytical AI
+C-DOT
+C3.ai
+Cactus Comms
+Calfus
+Callease AI
+Calligo Technologies
+Capital One
+Captain Fresh
+Card91
+Care Health Insurance
+Cartesian Consulting
+Cashfree
+CashRetail AI
+Caterpillar
+Celigo
+Cerence AI
+CGI
+Chakr
+Chalo Mobility Analytics
+Change ENgine
+Chapter Apps
+ChefX Labs
+Chorus.ai
+Chqbook
+Cientra
+Cifdaq
+Cimpress
+CirclePe
+Citadel Securities
+Cityflo
+Clari
+Clarity
+Clarity Travel
+Clayfin
+ClearML
+Climbax
+Clinikally
+Cloud analogy
+CLoudwick
+Codebugged AI
+Codemantra
+Coding Blocks
+Cogmac
+Cognito Analytics
+Cogoport
+CollegeDuniya
+ColouredCow
+Comet ML
+CommerceIQ
+Commonwealth Bank of Australia
+Concept Dash
+Concor
+Contata
+Convin
+Corridor
+COSM
+Cre8v
+Crio.Do
+Critical Insights
+Croma TAS
+Ctrls
+Cubastion
+Cummins
+Cvent
+Cyfuture
+Cyient Semiconductors
+Cyran It
+Dashverse
+Dataiku
+DataWeave
+DealtX
+Decimal point Analytics
+DeltaX
+Denodo
+DEP
+Descript
+Deutsche telekom
+DevRev
+Devtron
+Dezerv
+Dhurin
+Digital Torque
+DishNetwork Tech
+Dobbe AI
+Doctor Spectra
+DocuSign
+Dokonaly Cargo
+Doola
+Dot Pe
+DP World
+DRDO
+DS group
+DSP mutual fund
+DuckDuckGo
+Dunnhumby
+Dxc Technology
+E2E Networks
+Easyleadz
+Eatclub
+Ebiz Solution
+Ebullient Automation
+Ebullient Gaming
+Ebullient Securities
+ECIL
+Edelweiss General Insurance
+Edmingle
+Edu-Versity
+Edustation
+Efftronics Systems
+Eigenwave
+Eightfold AI
+eInfochips
+Elcom
+Electric Pe
+ElevenLabs
+Elevent Global
+Eli Lilly
+Elitmus
+Elucidata
+Embitel Technologies
+Engineersmind
+Enquero
+Ensuredit
+Entente
+EnterPret
+Epam
+Epicor Software
+Epifi
+Episource
+Epsilon
+Ergos Business Solutions
+Erp.ai
+EShopBox
+Estee Advisors
+ET Medialabs
+Ethos Life
+Eucloid Data Solutions
+Evalueserve
+Eversana
+Evertz
+Everything RF
+Evueme
+Eximius Design
+Exposys labs
+Extramarks
+ExxonMobil
+Factrika
+FamPay
+Fareportal
+Fasal Agritech
+Federal Bank
+Fidelity International
+Findem
+Finvestfx
+Fionics
+FirstClub
+FirstHive
+Firstsource Solutions
+FIS
+FITSO
+Fleetx
+Flexcar
+FlexCar IDC
+Flexprice
+FLOCK
+Fluidech IT Service
+FLydocs
+FLYHOMES Consulting Services
+FNZ
+Follow Up Boss
+Forbes Technologies
+Forma.ai
+Freecharge
+Fundamento
+Fundwave
+Furlenco
+future AGI
+Future First
+Future University
+Gainsight
+GalaxEye Space Solutions
+Galytix
+Gap
+Gartner
+GE Aerospace
+Ge Vernova
+GenBioCa
+GEP
+Giga
+Gigabyte
+GlobalFoundries
+Globiva
+GobbleCube
+Gocricit
+GoDaddy
+GoKwik
+GoodSpace AI
+Green Tree Global
+GreyOrange
+Gromo
+growthZ AI
+Gullak Money
+H2O.ai
+HAL
+Harman
+Harness
+HashedIn by Deloitte
+HDFC
+HDFC Securities
+HeadLamp
+Headout
+Heizen
+Helios Tech
+Hexaware Technologies
+Hexr Factory Immersive Tech
+HFCL
+Highspot
+Hike
+HiLabs
+Hiper Automotive
+Hitachi
+Hitachi Energy
+HitWicket
+Hono ai
+HSBC Bank
+HSBC Technology
+Human Resocia
+Humantic AI
+HummingBird
+HyperFace
+Hypersonix
+I-exceed Technology Solutions
+IAST Software Solutions
+ICF Aviation
+Idemitsu
+IDFC
+Idrive Software
+IFFCO Kisan Finance
+Ignitarium Technology Solutions
+IHX
+IKSULA Services
+Illumine Industries
+IMC Trading
+Impendi Analytics
+Impetus Technologies
+Incedo
+IndiaMART
+IndiGo
+Indra Sistemas
+Indream Technology Management
+Indsnd Bank
+Indus Insights
+Infineon Technologies
+Infinite Locus
+Inflection AI
+Info Edge
+INfollion
+InfoObjects
+Information Systems Associates
+Infrabyte Consulting
+Ingram
+Inito
+Innocito
+Innovaccer Analytics
+Insight Software
+InstaServ
+Institutional Shareholder Services
+Intact
+Intel Corporation
+Intellial
+Intellicus Technologies
+Intellipaat
+Interra systems
+Intervue.io
+Invictus
+Io.net
+ION Group
+iPAC Automation
+IQVIA
+Isourse
+ISRO
+Itilite
+Ivanti
+Ixana
+Jarvis Consulting
+Javis
+JCB
+JIo platforms Fast Fashion
+Jiva
+JK Tech
+JLL
+John Deere
+Johnson Controls
+Josh Technology Group
+Jsw Mg
+Jubilant Foodworks
+Jugnoo
+Jump Trading
+Kanerika
+Kantar
+Kapstan
+Kaseya
+Kaynes Technology
+Kenko.AI
+Keshcutai
+KEVEL
+Keyence
+Kimbal
+Kinaxis
+Knolskape Solutions
+Knowledge Lens
+Kognitiv
+Komprise
+Kongsberg Digital Software
+Kuhooo
+Kylo
+L&T Semiconductor Technologies
+Languify
+LaunchEd
+Learning Routes
+Leena AI
+LegalZoom
+Legato
+Leggit AI
+Legistify
+Leighton
+LetsTransport
+Lg Soft
+LightFury Games
+LimeChat
+Limeroad
+Lincode
+Live Like Sports
+Loadshare Networks
+LocalStack
+Lokal
+London Stock Exchange Group
+LooprAI
+LSEG
+Luganodes
+Lumal
+Lumberfi
+Lumenci
+Lyskraft
+Machenn Innovation
+Maersk
+Magna Electronics
+Mantarav
+Manthan
+MAQ Software
+Marelli
+Markle Tech & Media
+Marvell Technology
+Massive mobility
+Material
+MathCo
+MathWorks
+Matillion
+Maxlinear
+McGraw Hill Education
+McKinsey & Company
+MEA tech
+MediaTek
+MediBuddy
+MediNex Workforce
+Medtronic Engineering
+Meetmux
+Mercer Mettl
+Merilytics
+Merkle Sokrati
+Metamorphosis
+Metvy
+Metyis
+Michelin
+Micro Focus
+Microchip Technology
+Micron Technology
+Milvus
+Minix Fintech
+Mirafra Technologies
+Mistral Solutions
+Mitsubishi Electric
+MonkHub
+MoreYeahs
+Morphle Labs
+MosChip
+Motilal Oswal
+Motive
+Motorq
+MountBlue Technologies
+Movework
+Moveworks
+Movidu
+Mozark AI
+MPS
+MSIL
+Mthree
+Mtree
+Multyfi
+myHQ
+MyInscribe
+MyKarma
+Mynachiketa
+naik Ai
+National Australia Bank
+Natwest
+Navi
+Navigant
+Nbyula
+Ncr Atleos
+Neenopal
+Neo4j
+Neptune.ai
+Netradyne Technology
+Netskope
+NetWeb Technologies
+Neuriphy
+Neurosensum
+Newfold
+NewGenesis
+Newron
+Nexalis
+Next Growth
+Nextiva
+Nference
+Nickelfox
+NielsenIQ
+NIIT
+Nike
+Niva Bupa
+NMTronics
+No Broker hood
+Noon
+Nova Patterns
+Novus Hi-Tech
+Numerator
+Nurture.farm
+NXP Semiconductors
+NxtWave
+o9 Solutions
+OakNorth
+Odoo
+Offbeat Software Solutions
+OLX
+OLYV
+Omuni
+Omy
+Onsemi
+OORJA
+Open Text
+Open-Silicon
+OpenGig
+Oppo
+OptIQ
+Optum
+Orange Business
+Orange Grey Business
+Otter.ai
+Outbox labs
+Outreach
+P3c
+Paisa Bazar
+PathPartner Technology
+Patrnonous Res
+Patronous
+Payoneer
+People.ai
+PepsiCO GBS
+Perceptive Analytics
+Perficient
+Perplexity AI
+Perspective Analytics
+PingSafe
+Placify
+Planet spark
+PlaySimpleGames
+Plotline
+Plum
+PLuto mobility
+PMG
+Polestar Analytics
+Posist Technologies
+Pragmatic Semiconductor
+Pratishthan Software Venture
+PreGrad
+Probo
+ProcDNA
+Prodapt
+Programmers.io
+Pronto
+Property Group
+PropTiger
+Proso Ai
+Protiviti
+Providence
+PubMatic
+Q3 Tech
+Qdrant
+Qikfox
+Qnance Research Capital
+Qpi AI
+QSpiders
+Quantizer
+Quantizer Research
+QuantXpress Technologies
+QuEST Global
+Quickhyre.ai
+QuickSell
+Quince
+Quneqt
+Rambus
+Rashi Technologies
+RBL Bank
+RDTS
+Recharge
+Recruit CRM
+Redoorz
+Refyne
+Regen Powertech
+RELX
+Renesas Electronics
+Rentickle
+Restroworks
+Ria InsurTech
+RichPanel
+Ripik.ai
+RIVI
+Rivigo
+RnF
+Roboflow
+Rockman
+Rolling Arrays
+Rolls Royce
+RtCamp
+Rubique
+SA infrastructure
+SaaS Labs
+SabPaisa
+SAEL Industries
+Sagacious IP
+Sagent
+Salescode.ai
+Salesloft
+Samadhan
+Samsung R&D Institute Bangalore
+Samsung Research Institute Delhi
+Samsung Research Institute Noida
+Samsung Semiconductor
+Sandisk
+Sankalp Semiconductor
+Sanlayan
+SAP Labs
+Sapiens
+Sapiens Technologies
+Saviynt
+Sbi Cards
+Scienaptic Systems
+Scoreme
+Searce
+SecPod Technologies
+Sedemac
+Seekho
+Seismic
+Sembly
+SenseHQ
+SEPL
+Sgs
+Sharang Shakti
+Shell
+Shimarra
+Shipsy
+Shorthills AI
+Showpad
+Si2Chip
+Siemens Digital Industries
+siemens EDA
+Siemens Energy
+Siemens Healthineers
+Siemens Mobility
+Siemens Smart Infrastructure
+sig Lens
+Sigmoid Analytics
+Signify
+Signoz
+SigTuple
+Silicon Labs
+SimplAI
+Sirion Labs
+Siron Labs
+SITG
+SiTime
+Skyroat
+Skyworks Solutions
+Slack
+SLB
+Smarsh
+Smart Ed
+Smartsheet
+SmartSoC Solutions
+Snabbit
+Societe Generale
+SPEL Semiconductor
+Sportsdunia
+Spotnana
+Spyne
+SQL Software
+Squad Stack
+SRF
+Staqu
+Startup Genonae
+StatusNeo
+Sticker Mule
+STIR
+STMicroelectronics
+Strique
+STT Global Data Centres
+Study vault
+Suki.AI
+Sun Life
+Sunsire
+Sunstone
+SuperAGI
+Superb AI
+Superjoin
+Svasya Infotech
+Swageazy
+Swish
+Swiss Re
+Syfe
+Synapse Design
+Synaptic
+Synaptics Incorporated
+Syncron
+Synthesia
+Syrma SGS
+Taisys
+TAK Technologies
+Talentiser
+Talk to Angel
+tanX.fi
+Tata AIG
+Tata Electronics
+Tata iQ
+Tata Play
+Tata Semiconductor Assembly & Test
+Tavant
+Tazapay
+TBO
+TCIL
+TCS National Qualifier Test
+TechVista
+TechXR Innovations
+Tejas Networks
+Tek Uncokred Allo
+Tekion
+Telstra
+Tennr
+TensorGo
+TensorRT
+Tesco
+Tesseract
+Tessolve
+TestGorilla
+TestVagrant Technologies
+Texeg
+The Smart Cube
+The Strelema
+Thesquare
+ThinkExam
+Thinkhat
+Thinkinnov solution
+Thomson Digital
+Thomson Reuters
+Thorogood
+ThoughtFocus
+TIDE
+Tide platform
+TigerGraph
+Timble Glance
+Times Internet
+Tira
+TO THE NEW
+Toffee Insurance
+Toshiba
+Tower Research
+Tracelink
+Tracxn
+Trademarkia
+Trademo
+Trailytics
+Train X
+TransOrg Analytics
+TravClan
+Trellix
+Tresvista
+Tri O Tech
+Trilliant
+Trilogy Innovation
+Trinamix
+Trinity Life Sciences
+Troovy
+TSDPL
+TVS Electronics
+Twiio
+Tyfone
+TypeFace AI
+uCertify
+Uhnder
+Ukg
+Ultraviolette Automotive
+UM IT Solutions
+Undostress
+Unicommerce
+UnifyApps
+Unistring
+Unisys
+United Airlines
+United Lex Finance Bank
+UnitedHealth Group
+Unity Small
+UnivLabs
+UNO Digital Bank
+Unthinkable Solutions
+Uolo
+UpandDrop
+UPL
+Upswing Financial Technologies
+Upwork
+Uscreen
+UST
+V7 Labs
+Vahak Logistics
+Valeo
+Valiance Solutions
+Value Creed
+Value Edge
+Valued Epistemis
+Vanderlande Logistics
+Vansun Media Tech
+Varuna Marine
+Vavetik AI
+VComply Tech
+Vecmocon Technologies
+Vegapay
+Verisk
+Verity
+Verizon
+Versa Networks
+Vetic
+Vicara
+Victoria's Secret
+Vihaan Networks
+Viki Industries
+Virohan
+Viscadia
+Viseton
+Vistas Technolabs
+Visteon
+Vistex Asia Pacific
+Vivo
+Vivriti Capital
+VizExperts
+VoltaML
+Voltra
+Volvo Group
+Voxela
+VOXTA
+Voyants Solutions
+VVDN Technologies
+Wabtec
+Waferspace
+Walgreens
+WalkOver
+Walmart
+Waycool Foods
+We Skill
+Weaveroo
+Webboost Solution It Services
+Webs IT Solutions
+Websphere
+Weekday
+Wheelseye Technology
+Whitespectre
+Wishlink
+Wizcommerce
+Wobot
+Wokelo Ai
+Wolf Mentoring
+Wolkus
+Wootz.work
+Workday Technologies
+World Wide Technology
+Worlder Team
+Writesonic
+WTW
+XBattery
+Xebia
+Xebo.ai
+Xeno
+Xerox
+Xiaomi
+Xilinx
+Xindus
+XOR Technologies
+Xoriant
+Xs Cad
+Yahoo
+Yantra
+YASH Technologies
+YCP Auctus
+Yugabyte
+Yulu Bikes
+Yum India Global Services
+Yum! Digital & technology
+Z1 Tech
+ZEISS
+Zeko AI
+Zenarate
+ZenQ
+Zensar Technologies
+Zeotap
+ZF Group
+Zigram
+Zillious Solutions
+Zimero
+Zingbus
+Zinnia
+Zipgo Mobility
+ZLTech
+Zoca ai
+Zolve
+ZS Associates
+Zunroof
+Zypp Electric
+
+# ---------- Research, advisory, consulting & analytics firms (added to fill gaps) ----------
+Slalom
+Wolters Kluwer
+Clarivate
+Datamatics
+Dun & Bradstreet
+Equifax
+TransUnion
+Experian
+FICO
+Infogain
+Springer Nature
+Wiley
+Pearson
+Cengage
+Absolutdata
+Hackett Group
+
+# ---------- Large Indian corporates & OEMs (restored: they run IT/digital/embedded teams) ----------
+Adani
+Adani Defence & Aerospace
+Adani Green Energy
+Adani Power
+Aditya Birla Fashion and Retail
+Amul
+Anand Rathi
+Apollo Hospitals
+Ashok Leyland
+Asian Paints
+Avenue Supermarts DMart
+Bajaj Auto
+Bajaj Auto EV
+Biocon
+Blue Star
+BPCL
+Brakes
+Britannia Industries
+BSNL
+Cipla
+Crompton Greaves Consumer Electricals
+Dabur
+Dixon Technologies
+DLF
+DMart
+Dr Reddy's
+DTDC
+Eicher Motors
+EMotorad
+Endurance Technologies
+Engineers India Limited
+Euler Motors
+Finolex Cables
+Fortis Healthcare
+GAIL
+Godrej
+Godrej Consumer Products
+Godrej Properties
+Grasim Industries
+Havells
+Hero MotoCorp
+Hindustan Coca-Cola Beverages
+Hindustan Unilever
+Honda
+Honda Cars
+Honda Motorcycle and Scooter
+HPCL-Mittal Energy
+Indus Towers
+Inox Wind
+IOCL
+ITC
+JBM group
+Jindal Power
+Jindal Steel
+JSPL
+JSW
+JSW Energy
+Kia
+Kirloskar Brothers
+Kirloskar Oil Engines
+Larsen & Toubro
+Lucas TVS
+Lupin
+Mahindra
+Mahindra & Mahindra
+Mahindra Logistics
+Mankind Pharma
+Marico
+Maruti Suzuki
+Max Healthcare
+Mondelez
+Muthoot
+NMDC
+Piramal
+Polycab
+Reliance
+Reliance Industries
+Reliance Retail Ventures
+Royal Enfield
+RR Kabel
+SAIL
+Spark Minda
+Sterlite Power
+Sun Pharma
+Tata AutoComp Systems
+Tata Hitachi
+Tata Motors
+TATA Power
+Tata Steel
+Thermax
+Titan
+Titan Company
+Toyota
+Trent
+TVS Motor
+UPPCL
+Varroc
+Varroc Group
+Vedanta Group
+Vguard
+Voltas
+Welspun Energy
+Yamaha
+Zydus
