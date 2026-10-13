@@ -42,8 +42,8 @@ RE_PLAIN = re.compile(
 )
 
 # Title exclusion patterns
-RE_SDE_SENIOR = re.compile(r"\bsde[- ]?(2|3|4)\b", re.IGNORECASE)
-RE_LEVEL_ROMAN = re.compile(r"\b(engineer|developer)\s+(ii|iii|iv)\b", re.IGNORECASE)
+RE_SDE_SENIOR = re.compile(r"\bsde[- ]?(2|3|4|ii|iii|iv)\b", re.IGNORECASE)
+RE_LEVEL_ROMAN = re.compile(r"\b(engineer|developer|sde)\s+(ii|iii|iv)\b", re.IGNORECASE)
 RE_TRAILING_ROMAN = re.compile(r"\b(ii|iii|iv)\b$", re.IGNORECASE)
 
 # Indian cities / regions
