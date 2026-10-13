@@ -5,7 +5,11 @@ import pytest
 from src.adapters.ashby import AshbyAdapter
 from src.adapters.greenhouse import GreenhouseAdapter
 from src.adapters.lever import LeverAdapter
+from src.adapters.smartrecruiters import SmartRecruitersAdapter
+from src.adapters.workable import WorkableAdapter
+from src.adapters.workday import WorkdayAdapter
 from src.models import Company, Job
+from src.registry import load_companies
 
 FIXTURES_DIR = Path("tests/fixtures")
 
@@ -157,3 +161,173 @@ def test_ashby_adapter(sample_company):
     assert handled_jobs[0].salary == "$150K - $180K"
     assert "<" not in handled_jobs[0].description
     assert "&lt;" not in handled_jobs[0].description
+
+
+def test_smartrecruiters_adapter(sample_company):
+    comp = sample_company("smartrecruiters", "deliveryhero", "Delivery Hero")
+    adapter = SmartRecruitersAdapter()
+
+    fixture_path = FIXTURES_DIR / "smartrecruiters_sample.json"
+    with open(fixture_path, "r", encoding="utf-8") as f:
+        raw_data = json.load(f)
+
+    jobs = adapter.parse(raw_data, comp)
+    assert len(jobs) >= 1
+
+    for job in jobs:
+        assert isinstance(job, Job)
+        assert job.job_id.startswith("smartrecruiters:deliveryhero:")
+        assert job.company == "Delivery Hero"
+        assert job.company_key == "smartrecruiters:deliveryhero"
+        assert job.title and len(job.title) > 0
+        assert job.url and job.url.startswith("https://jobs.smartrecruiters.com/deliveryhero/")
+        if job.posted_at:
+            assert job.posted_at.endswith("Z")
+
+    # Deliberately malformed entry skipped without raising
+    malformed_data = {
+        "content": [
+            {"id": None, "name": "No ID"},
+            {"id": "sr-1", "name": ""},
+            {"id": "sr-2", "name": "   "},
+            "not_a_dict",
+            {
+                "id": "744000155305309",
+                "name": "Fullstack Engineer",
+                "releasedDate": "2026-10-13T15:46:40.475Z",
+                "location": {
+                    "city": "Berlin",
+                    "country": "Germany",
+                    "fullLocation": "Berlin, Germany",
+                    "remote": False,
+                },
+            },
+        ]
+    }
+    handled_jobs = adapter.parse(malformed_data, comp)
+    assert len(handled_jobs) == 1
+    assert handled_jobs[0].job_id == "smartrecruiters:deliveryhero:744000155305309"
+    assert handled_jobs[0].title == "Fullstack Engineer"
+    assert handled_jobs[0].location == "Berlin, Germany"
+    assert handled_jobs[0].remote is False
+
+
+def test_workable_adapter(sample_company):
+    comp = sample_company("workable", "fortanix", "Fortanix")
+    adapter = WorkableAdapter()
+
+    fixture_path = FIXTURES_DIR / "workable_sample.json"
+    with open(fixture_path, "r", encoding="utf-8") as f:
+        raw_data = json.load(f)
+
+    jobs = adapter.parse(raw_data, comp)
+    assert len(jobs) >= 1
+
+    for job in jobs:
+        assert isinstance(job, Job)
+        assert job.job_id.startswith("workable:fortanix:")
+        assert job.company == "Fortanix"
+        assert job.company_key == "workable:fortanix"
+        assert job.title and len(job.title) > 0
+        assert job.url and job.url.startswith("https://apply.workable.com/fortanix/j/")
+
+    # Deliberately malformed entry skipped without raising
+    malformed_data = {
+        "results": [
+            {"id": None, "title": "Missing ID"},
+            {"shortcode": "", "title": "Empty shortcode"},
+            {"shortcode": "ABC", "title": ""},
+            123,
+            {
+                "shortcode": "GOOD123",
+                "title": "Security Engineer",
+                "remote": True,
+                "location": {"city": "Mountain View", "country": "United States"},
+                "published": "2026-10-10T12:00:00Z",
+            },
+        ]
+    }
+    handled_jobs = adapter.parse(malformed_data, comp)
+    assert len(handled_jobs) == 1
+    assert handled_jobs[0].job_id == "workable:fortanix:GOOD123"
+    assert handled_jobs[0].title == "Security Engineer"
+    assert handled_jobs[0].remote is True
+    assert handled_jobs[0].location == "Mountain View, United States"
+
+
+def test_workday_adapter():
+    comp_url = Company(
+        name="NVIDIA",
+        ats="workday",
+        slug="nvidia",
+        tier=1,
+        extra="https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/jobs",
+    )
+    adapter = WorkdayAdapter()
+
+    fixture_path = FIXTURES_DIR / "workday_sample.json"
+    with open(fixture_path, "r", encoding="utf-8") as f:
+        raw_data = json.load(f)
+
+    jobs = adapter.parse(raw_data, comp_url)
+    assert len(jobs) >= 1
+
+    for job in jobs:
+        assert isinstance(job, Job)
+        assert job.job_id.startswith("workday:nvidia:")
+        assert job.company == "NVIDIA"
+        assert job.company_key == "workday:nvidia"
+        assert job.title and len(job.title) > 0
+        assert job.url.startswith("https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite/")
+
+    # Also test alternative extra format: site=...;wd=...
+    comp_semi = Company(
+        name="NVIDIA",
+        ats="workday",
+        slug="nvidia",
+        tier=1,
+        extra="site=NVIDIAExternalCareerSite;wd=wd5",
+    )
+    api_url, base_web, site = adapter._resolve_endpoints(comp_semi)
+    assert api_url == "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/jobs"
+    assert base_web == "https://nvidia.wd5.myworkdayjobs.com"
+    assert site == "NVIDIAExternalCareerSite"
+
+    # Deliberately malformed entry skipped without raising
+    malformed_data = {
+        "jobPostings": [
+            {"title": "", "externalPath": "/job/123"},
+            {"title": "No Path"},
+            {"externalPath": "/job/no_title"},
+            None,
+            {
+                "title": "Senior AI Architect",
+                "externalPath": "/job/US-CA-Santa-Clara/Senior-AI-Architect_JR123456",
+                "locationsText": "Santa Clara, CA",
+            },
+        ]
+    }
+    handled_jobs = adapter.parse(malformed_data, comp_url)
+    assert len(handled_jobs) == 1
+    assert handled_jobs[0].job_id == "workday:nvidia:JR123456"
+    assert handled_jobs[0].title == "Senior AI Architect"
+    assert handled_jobs[0].location == "Santa Clara, CA"
+    assert handled_jobs[0].url == "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Senior-AI-Architect_JR123456"
+
+
+def test_registry_with_extra_column(tmp_path):
+    csv_file = tmp_path / "companies.csv"
+    csv_file.write_text(
+        "name,ats,slug,tier,extra\n"
+        "NVIDIA,workday,nvidia,1,https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/jobs\n"
+        "Delivery Hero,smartrecruiters,deliveryhero,2,\n"
+        "Fortanix,workable,fortanix,2,\n",
+        encoding="utf-8",
+    )
+    comps = load_companies(csv_file, allow_extra=True)
+    assert len(comps) == 3
+    assert comps[0].ats == "workday"
+    assert comps[0].extra == "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/jobs"
+    assert comps[1].ats == "smartrecruiters"
+    assert comps[1].extra is None
+    assert comps[2].ats == "workable"

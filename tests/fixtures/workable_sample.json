@@ -1,0 +1,165 @@
+{
+  "nextPage": "WzE3ODg0ODAwMDAwMDAsNjA3MjY1N10=",
+  "results": [
+    {
+      "id": 6186808,
+      "shortcode": "0C693C36BA",
+      "title": "HR Associate (Eindhoven NL based)",
+      "remote": false,
+      "location": {
+        "city": "Eindhoven",
+        "country": "Netherlands",
+        "countryCode": "NL",
+        "region": "North Brabant"
+      },
+      "locations": [
+        {
+          "city": "Eindhoven",
+          "country": "Netherlands",
+          "countryCode": "NL",
+          "hidden": false,
+          "region": "North Brabant"
+        }
+      ],
+      "state": "published",
+      "isInternal": false,
+      "code": "",
+      "published": "2026-10-09T00:00:00.000Z",
+      "language": "en",
+      "department": [],
+      "accountUid": "ce81a40d-ccc1-41ad-b20b-a603237884c8",
+      "approvalStatus": "approved",
+      "workplace": "hybrid"
+    },
+    {
+      "id": 6181264,
+      "shortcode": "02FD9F7DED",
+      "title": "Senior Software Engineer - Confidential Computing & Runtime Security (Eindhoven)",
+      "remote": false,
+      "location": {
+        "city": "Eindhoven",
+        "country": "Netherlands",
+        "countryCode": "NL",
+        "region": "North Brabant"
+      },
+      "locations": [
+        {
+          "city": "Eindhoven",
+          "country": "Netherlands",
+          "countryCode": "NL",
+          "hidden": false,
+          "region": "North Brabant"
+        }
+      ],
+      "state": "published",
+      "isInternal": false,
+      "code": "",
+      "published": "2026-10-07T00:00:00.000Z",
+      "language": "en",
+      "department": [],
+      "accountUid": "ce81a40d-ccc1-41ad-b20b-a603237884c8",
+      "approvalStatus": "approved",
+      "workplace": "hybrid"
+    },
+    {
+      "id": 6162933,
+      "shortcode": "465FBC5BDA",
+      "title": "Business Development Representative",
+      "remote": true,
+      "location": {
+        "city": "",
+        "country": "India",
+        "countryCode": "IN",
+        "region": null
+      },
+      "locations": [
+        {
+          "city": "",
+          "country": "India",
+          "countryCode": "IN",
+          "hidden": false,
+          "region": null
+        }
+      ],
+      "state": "published",
+      "isInternal": false,
+      "code": "",
+      "published": "2026-10-05T00:00:00.000Z",
+      "type": "full",
+      "language": "en",
+      "department": [
+        "Marketing"
+      ],
+      "accountUid": "ce81a40d-ccc1-41ad-b20b-a603237884c8",
+      "approvalStatus": "approved",
+      "workplace": "remote"
+    },
+    {
+      "id": 5995030,
+      "shortcode": "6D24A9C62D",
+      "title": "Senior Network Engineer (US - Bay Area)",
+      "remote": false,
+      "location": {
+        "city": "Santa Clara",
+        "country": "United States",
+        "countryCode": "US",
+        "region": "California"
+      },
+      "locations": [
+        {
+          "city": "Santa Clara",
+          "country": "United States",
+          "countryCode": "US",
+          "hidden": false,
+          "region": "California"
+        }
+      ],
+      "state": "published",
+      "isInternal": false,
+      "code": "",
+      "published": "2026-10-01T00:00:00.000Z",
+      "type": "full",
+      "language": "en",
+      "department": [
+        "ENG"
+      ],
+      "accountUid": "ce81a40d-ccc1-41ad-b20b-a603237884c8",
+      "approvalStatus": "approved",
+      "workplace": "hybrid"
+    },
+    {
+      "id": 6165536,
+      "shortcode": "44063809E7",
+      "title": "Federal Business Development Director (Washington, DC area)",
+      "remote": true,
+      "location": {
+        "city": "Washington",
+        "country": "United States",
+        "countryCode": "US",
+        "region": "District of Columbia"
+      },
+      "locations": [
+        {
+          "city": "Washington",
+          "country": "United States",
+          "countryCode": "US",
+          "hidden": false,
+          "region": "District of Columbia"
+        }
+      ],
+      "state": "published",
+      "isInternal": false,
+      "code": "",
+      "published": "2026-10-01T00:00:00.000Z",
+      "type": "full",
+      "language": "en",
+      "department": [
+        "Sales"
+      ],
+      "accountUid": "ce81a40d-ccc1-41ad-b20b-a603237884c8",
+      "approvalStatus": "approved",
+      "workplace": "remote"
+    }
+  ],
+  "total": 19
+}

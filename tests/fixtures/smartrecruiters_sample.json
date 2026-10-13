@@ -1,0 +1,540 @@
+{
+  "offset": 0,
+  "limit": 100,
+  "totalFound": 949,
+  "content": [
+    {
+      "id": "744000155305309",
+      "name": "Fullstack Engineer II, Dmarts \u2013 Quick Commerce",
+      "uuid": "22452f58-6ec4-4a04-9930-36f6d34dbaf9",
+      "jobAdId": "dd3940fc-114b-4d21-af37-d1bcbddb0c46",
+      "defaultJobAd": true,
+      "refNumber": "JR0086655",
+      "company": {
+        "identifier": "DeliveryHero",
+        "name": "Delivery Hero"
+      },
+      "releasedDate": "2026-10-13T15:46:40.475Z",
+      "location": {
+        "city": "Berlin",
+        "country": "de",
+        "remote": false,
+        "hybrid": true,
+        "fullLocation": "Berlin, , Germany"
+      },
+      "industry": {
+        "id": "internet",
+        "label": "Internet"
+      },
+      "department": {},
+      "function": {
+        "id": "information_technology",
+        "label": "Information Technology"
+      },
+      "typeOfEmployment": {
+        "id": "permanent",
+        "label": "Full-time"
+      },
+      "experienceLevel": {
+        "id": "mid_senior_level",
+        "label": "Mid-Senior Level"
+      },
+      "customField": [
+        {
+          "fieldId": "6564ae9ddd552072c3a97453",
+          "fieldLabel": "Time Type",
+          "valueId": "421938a4e1d40118e396324490147300",
+          "valueLabel": "Full time"
+        },
+        {
+          "fieldId": "655ce69d695b8c5663cf1f55",
+          "fieldLabel": "Brands",
+          "valueId": "default",
+          "valueLabel": "Delivery Hero"
+        },
+        {
+          "fieldId": "6564ad6b1cf48c421e22419d",
+          "fieldLabel": "Job Family",
+          "valueId": "b475b918a29901e7cf4c4b344e011c05",
+          "valueLabel": "Software Engineering"
+        },
+        {
+          "fieldId": "6564ad3fee5f2f5b84045448",
+          "fieldLabel": "Job Family Group",
+          "valueId": "ef2e8d3982de01cea74d59c3d1160900",
+          "valueLabel": "Tech"
+        },
+        {
+          "fieldId": "6564aa853d74d30a33089d2a",
+          "fieldLabel": "Supervisory Organization",
+          "valueId": "7e8d50fe242b1001523963f3523e0000",
+          "valueLabel": "Tech - QC - Dmarts - Supply Chain Management - Replenishment Order Processing DHSE - HIE11043"
+        },
+        {
+          "fieldId": "COUNTRY",
+          "fieldLabel": "Country/Region",
+          "valueId": "de",
+          "valueLabel": "Germany"
+        },
+        {
+          "fieldId": "6564ad09560ccd2ba9e90d24",
+          "fieldLabel": "Management Level",
+          "valueId": "ef2e8d3982de01df9ed10f45d2163700",
+          "valueLabel": "IC2"
+        },
+        {
+          "fieldId": "6564ae71dd552072c3a97452",
+          "fieldLabel": "Worker Sub-Type",
+          "valueId": "ef2e8d3982de0123e1696445d2164400",
+          "valueLabel": "Permanent"
+        },
+        {
+          "fieldId": "6564abc0d641ff6fc90ebd6d",
+          "fieldLabel": "Primary Location",
+          "valueId": "dd8bd6e8ef5e01f0b31a22394e012004",
+          "valueLabel": "Berlin - Oranienburger Stra\u00dfe"
+        },
+        {
+          "fieldId": "6564ada8e5ee8c3d9bec3405",
+          "fieldLabel": "Job Profile",
+          "valueId": "a2e7316c822c100094ab28f90e4f0000",
+          "valueLabel": "Software Engineer - IC2"
+        }
+      ],
+      "visibility": "PUBLIC",
+      "ref": "https://api.smartrecruiters.com/v1/companies/deliveryhero/postings/744000155305309",
+      "creator": {
+        "name": "Mohammad Azaz"
+      },
+      "language": {
+        "code": "en",
+        "label": "English",
+        "labelNative": "English (US)"
+      }
+    },
+    {
+      "id": "744000155298676",
+      "name": "Security Engineer, Product Security team",
+      "uuid": "7ff6817f-891c-4183-a0ee-093befb6450f",
+      "jobAdId": "47e79c83-d808-48bd-b890-6fbbe4566ecd",
+      "defaultJobAd": false,
+      "refNumber": "JR0086459",
+      "company": {
+        "identifier": "DeliveryHero",
+        "name": "Delivery Hero"
+      },
+      "releasedDate": "2026-10-13T15:28:40.644Z",
+      "location": {
+        "city": "Berlin",
+        "country": "de",
+        "remote": false,
+        "hybrid": true,
+        "fullLocation": "Berlin, , Germany"
+      },
+      "industry": {
+        "id": "internet",
+        "label": "Internet"
+      },
+      "department": {},
+      "function": {
+        "id": "information_technology",
+        "label": "Information Technology"
+      },
+      "typeOfEmployment": {
+        "id": "permanent",
+        "label": "Full-time"
+      },
+      "experienceLevel": {
+        "id": "mid_senior_level",
+        "label": "Mid-Senior Level"
+      },
+      "customField": [
+        {
+          "fieldId": "6564ae9ddd552072c3a97453",
+          "fieldLabel": "Time Type",
+          "valueId": "421938a4e1d40118e396324490147300",
+          "valueLabel": "Full time"
+        },
+        {
+          "fieldId": "655ce69d695b8c5663cf1f55",
+          "fieldLabel": "Brands",
+          "valueId": "default",
+          "valueLabel": "Delivery Hero"
+        },
+        {
+          "fieldId": "6564ad6b1cf48c421e22419d",
+          "fieldLabel": "Job Family",
+          "valueId": "b475b918a299012466ec53344e014c05",
+          "valueLabel": "Security Engineering"
+        },
+        {
+          "fieldId": "6564ad3fee5f2f5b84045448",
+          "fieldLabel": "Job Family Group",
+          "valueId": "ef2e8d3982de01cea74d59c3d1160900",
+          "valueLabel": "Tech"
+        },
+        {
+          "fieldId": "6564aa853d74d30a33089d2a",
+          "fieldLabel": "Supervisory Organization",
+          "valueId": "509a6d0df96801007bb965b72b850001",
+          "valueLabel": "Tech - Information Security - Product Security DHSE - HIE06564"
+        },
+        {
+          "fieldId": "COUNTRY",
+          "fieldLabel": "Country/Region",
+          "valueId": "de",
+          "valueLabel": "Germany"
+        },
+        {
+          "fieldId": "6564ad09560ccd2ba9e90d24",
+          "fieldLabel": "Management Level",
+          "valueId": "ef2e8d3982de01df9ed10f45d2163700",
+          "valueLabel": "IC2"
+        },
+        {
+          "fieldId": "6564ae71dd552072c3a97452",
+          "fieldLabel": "Worker Sub-Type",
+          "valueId": "ef2e8d3982de0123e1696445d2164400",
+          "valueLabel": "Permanent"
+        },
+        {
+          "fieldId": "6564abc0d641ff6fc90ebd6d",
+          "fieldLabel": "Primary Location",
+          "valueId": "dd8bd6e8ef5e01f0b31a22394e012004",
+          "valueLabel": "Berlin - Oranienburger Stra\u00dfe"
+        },
+        {
+          "fieldId": "6564ada8e5ee8c3d9bec3405",
+          "fieldLabel": "Job Profile",
+          "valueId": "0b9bd6d5dac7100094a6d23013740000",
+          "valueLabel": "Security Engineering - IC2"
+        }
+      ],
+      "visibility": "PUBLIC",
+      "ref": "https://api.smartrecruiters.com/v1/companies/deliveryhero/postings/744000155298676",
+      "language": {
+        "code": "en",
+        "label": "English",
+        "labelNative": "English (US)"
+      }
+    },
+    {
+      "id": "744000155298919",
+      "name": "Controller MX Lead",
+      "uuid": "e8f5566f-bda7-47fa-887c-a8b2e77b3984",
+      "jobAdId": "bb5d73d6-3519-42f7-a790-763a1a3e8dc5",
+      "defaultJobAd": true,
+      "refNumber": "JR0082711",
+      "company": {
+        "identifier": "DeliveryHero",
+        "name": "Delivery Hero"
+      },
+      "releasedDate": "2026-10-13T15:23:56.445Z",
+      "location": {
+        "city": "Barcelona",
+        "country": "es",
+        "remote": false,
+        "hybrid": false,
+        "fullLocation": "Barcelona, , Spain"
+      },
+      "industry": {
+        "id": "internet",
+        "label": "Internet"
+      },
+      "department": {},
+      "function": {
+        "id": "finance",
+        "label": "Finance"
+      },
+      "typeOfEmployment": {
+        "id": "permanent",
+        "label": "Full-time"
+      },
+      "experienceLevel": {
+        "id": "mid_senior_level",
+        "label": "Mid-Senior Level"
+      },
+      "customField": [
+        {
+          "fieldId": "6564ae9ddd552072c3a97453",
+          "fieldLabel": "Time Type",
+          "valueId": "421938a4e1d40118e396324490147300",
+          "valueLabel": "Full time"
+        },
+        {
+          "fieldId": "655ce69d695b8c5663cf1f55",
+          "fieldLabel": "Brands",
+          "valueId": "Glovo",
+          "valueLabel": "Glovo"
+        },
+        {
+          "fieldId": "6564ad6b1cf48c421e22419d",
+          "fieldLabel": "Job Family",
+          "valueId": "75439315e97510009129b2c1fdd60000",
+          "valueLabel": "Finance Insights"
+        },
+        {
+          "fieldId": "6564ad3fee5f2f5b84045448",
+          "fieldLabel": "Job Family Group",
+          "valueId": "ef2e8d3982de0154ceac3dccd1160d00",
+          "valueLabel": "Finance"
+        },
+        {
+          "fieldId": "6564aa853d74d30a33089d2a",
+          "fieldLabel": "Supervisory Organization",
+          "valueId": "2446ff07ae4e1001e009953c83ea0000",
+          "valueLabel": "Operations - Live Operations - Hub Africa - HIE95407"
+        },
+        {
+          "fieldId": "COUNTRY",
+          "fieldLabel": "Country/Region",
+          "valueId": "es",
+          "valueLabel": "Spain"
+        },
+        {
+          "fieldId": "6564ad09560ccd2ba9e90d24",
+          "fieldLabel": "Management Level",
+          "valueId": "ef2e8d3982de0186768e0345d2163500",
+          "valueLabel": "IC3"
+        },
+        {
+          "fieldId": "6564ae71dd552072c3a97452",
+          "fieldLabel": "Worker Sub-Type",
+          "valueId": "ef2e8d3982de0123e1696445d2164400",
+          "valueLabel": "Permanent"
+        },
+        {
+          "fieldId": "6564abc0d641ff6fc90ebd6d",
+          "fieldLabel": "Primary Location",
+          "valueId": "5abc96616cc11000ae713ac737c70000",
+          "valueLabel": "Barcelona - Yellow Park"
+        },
+        {
+          "fieldId": "6564ada8e5ee8c3d9bec3405",
+          "fieldLabel": "Job Profile",
+          "valueId": "a2e7316c822c1000946a9a26831f0000",
+          "valueLabel": "Controlling - IC3"
+        }
+      ],
+      "visibility": "PUBLIC",
+      "ref": "https://api.smartrecruiters.com/v1/companies/deliveryhero/postings/744000155298919",
+      "language": {
+        "code": "en",
+        "label": "English",
+        "labelNative": "English (US)"
+      }
+    },
+    {
+      "id": "744000155273149",
+      "name": "Senior Manager, Virtual Account Management",
+      "uuid": "11ee4642-f2c1-47a6-a260-3b056090c774",
+      "jobAdId": "6b247093-8738-4e6d-b346-6a59535bbd11",
+      "defaultJobAd": true,
+      "refNumber": "JR0087614",
+      "company": {
+        "identifier": "DeliveryHero",
+        "name": "Delivery Hero"
+      },
+      "releasedDate": "2026-10-13T13:59:21.523Z",
+      "location": {
+        "city": "\u0130stanbul",
+        "country": "tr",
+        "remote": false,
+        "hybrid": false,
+        "fullLocation": "\u0130stanbul, , Turkey"
+      },
+      "industry": {
+        "id": "internet",
+        "label": "Internet"
+      },
+      "department": {},
+      "function": {
+        "id": "sales",
+        "label": "Sales"
+      },
+      "typeOfEmployment": {
+        "id": "permanent",
+        "label": "Full-time"
+      },
+      "experienceLevel": {
+        "id": "mid_senior_level",
+        "label": "Mid-Senior Level"
+      },
+      "customField": [
+        {
+          "fieldId": "6564ae9ddd552072c3a97453",
+          "fieldLabel": "Time Type",
+          "valueId": "421938a4e1d40118e396324490147300",
+          "valueLabel": "Full time"
+        },
+        {
+          "fieldId": "655ce69d695b8c5663cf1f55",
+          "fieldLabel": "Brands",
+          "valueId": "Yemeksepeti",
+          "valueLabel": "Yemeksepeti"
+        },
+        {
+          "fieldId": "6564ad6b1cf48c421e22419d",
+          "fieldLabel": "Job Family",
+          "valueId": "75439315e9751000915150c1ccdc0000",
+          "valueLabel": "Sales Account Management"
+        },
+        {
+          "fieldId": "6564ad3fee5f2f5b84045448",
+          "fieldLabel": "Job Family Group",
+          "valueId": "75439315e97510004b9c1be43b920000",
+          "valueLabel": "Sales"
+        },
+        {
+          "fieldId": "6564aa853d74d30a33089d2a",
+          "fieldLabel": "Supervisory Organization",
+          "valueId": "b3a62b5555ed0101de5cbed19d1e0000",
+          "valueLabel": "Commercial - SMB Growth - HIE05523"
+        },
+        {
+          "fieldId": "COUNTRY",
+          "fieldLabel": "Country/Region",
+          "valueId": "tr",
+          "valueLabel": "T\u00fcrkiye"
+        },
+        {
+          "fieldId": "6564ad09560ccd2ba9e90d24",
+          "fieldLabel": "Management Level",
+          "valueId": "ef2e8d3982de01107cabc544d2162b00",
+          "valueLabel": "M2"
+        },
+        {
+          "fieldId": "6564ae71dd552072c3a97452",
+          "fieldLabel": "Worker Sub-Type",
+          "valueId": "ef2e8d3982de0123e1696445d2164400",
+          "valueLabel": "Permanent"
+        },
+        {
+          "fieldId": "6564abc0d641ff6fc90ebd6d",
+          "fieldLabel": "Primary Location",
+          "valueId": "1d139d2964cd017beb63c8ad930107a1",
+          "valueLabel": "\u0130stanbul"
+        },
+        {
+          "fieldId": "6564ada8e5ee8c3d9bec3405",
+          "fieldLabel": "Job Profile",
+          "valueId": "0b9bd6d5dac71000949fb1dce7e50000",
+          "valueLabel": "Mid-Size Account Management - M2"
+        }
+      ],
+      "visibility": "PUBLIC",
+      "ref": "https://api.smartrecruiters.com/v1/companies/deliveryhero/postings/744000155273149",
+      "language": {
+        "code": "en",
+        "label": "English",
+        "labelNative": "English (US)"
+      }
+    },
+    {
+      "id": "744000155264410",
+      "name": "Sales Executive",
+      "uuid": "6fcb7353-0d90-454a-b418-3d0cb8a58b07",
+      "jobAdId": "1de5738a-95b6-487d-a7b8-8c18e17bc150",
+      "defaultJobAd": true,
+      "refNumber": "JR0087548",
+      "company": {
+        "identifier": "DeliveryHero",
+        "name": "Delivery Hero"
+      },
+      "releasedDate": "2026-10-13T13:35:49.950Z",
+      "location": {
+        "city": "C\u00f3rdoba",
+        "country": "ar",
+        "remote": false,
+        "hybrid": false,
+        "fullLocation": "C\u00f3rdoba, , Argentina"
+      },
+      "industry": {
+        "id": "internet",
+        "label": "Internet"
+      },
+      "department": {},
+      "function": {
+        "id": "sales",
+        "label": "Sales"
+      },
+      "typeOfEmployment": {
+        "id": "permanent",
+        "label": "Full-time"
+      },
+      "experienceLevel": {
+        "id": "associate",
+        "label": "Associate"
+      },
+      "customField": [
+        {
+          "fieldId": "6564ae9ddd552072c3a97453",
+          "fieldLabel": "Time Type",
+          "valueId": "421938a4e1d40118e396324490147300",
+          "valueLabel": "Full time"
+        },
+        {
+          "fieldId": "655ce69d695b8c5663cf1f55",
+          "fieldLabel": "Brands",
+          "valueId": "PedidosYa",
+          "valueLabel": "PedidosYa"
+        },
+        {
+          "fieldId": "6564ad6b1cf48c421e22419d",
+          "fieldLabel": "Job Family",
+          "valueId": "75439315e9751000914c03e872460000",
+          "valueLabel": "Sales & Business Development"
+        },
+        {
+          "fieldId": "6564ad3fee5f2f5b84045448",
+          "fieldLabel": "Job Family Group",
+          "valueId": "75439315e97510004b9c1be43b920000",
+          "valueLabel": "Sales"
+        },
+        {
+          "fieldId": "6564aa853d74d30a33089d2a",
+          "fieldLabel": "Supervisory Organization",
+          "valueId": "aa63dcdf600e1000b417ada355330000",
+          "valueLabel": "Commercial - Sales - ARG - Team AM - HIE16491"
+        },
+        {
+          "fieldId": "COUNTRY",
+          "fieldLabel": "Country/Region",
+          "valueId": "ar",
+          "valueLabel": "Argentina"
+        },
+        {
+          "fieldId": "6564ad09560ccd2ba9e90d24",
+          "fieldLabel": "Management Level",
+          "valueId": "ef2e8d3982de01acdf1d1c45d2163900",
+          "valueLabel": "IC1"
+        },
+        {
+          "fieldId": "6564ae71dd552072c3a97452",
+          "fieldLabel": "Worker Sub-Type",
+          "valueId": "ef2e8d3982de0123e1696445d2164400",
+          "valueLabel": "Permanent"
+        },
+        {
+          "fieldId": "6564abc0d641ff6fc90ebd6d",
+          "fieldLabel": "Primary Location",
+          "valueId": "41db0ced4dc31001ede68e45bc250000",
+          "valueLabel": "C\u00f3rdoba - Oficina Local"
+        },
+        {
+          "fieldId": "6564ada8e5ee8c3d9bec3405",
+          "fieldLabel": "Job Profile",
+          "valueId": "a2e7316c822c1000949d3f0414210000",
+          "valueLabel": "Sales Acquisition - IC1"
+        }
+      ],
+      "visibility": "PUBLIC",
+      "ref": "https://api.smartrecruiters.com/v1/companies/deliveryhero/postings/744000155264410",
+      "language": {
+        "code": "es-MX",
+        "label": "Spanish (LATAM)",
+        "labelNative": "espa\u00f1ol (LATAM)"
+      }
+    }
+  ]
+}

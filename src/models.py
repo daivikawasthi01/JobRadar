@@ -8,6 +8,7 @@ class Company:
     ats: str
     slug: str
     tier: int
+    extra: str | None = None
 
     @property
     def key(self) -> str:

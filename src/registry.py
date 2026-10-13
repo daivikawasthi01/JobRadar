@@ -6,7 +6,7 @@ from src.models import Company
 
 logger = logging.getLogger(__name__)
 
-VALID_ATS = {"greenhouse", "lever", "ashby"}
+VALID_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "workday"}
 VALID_TIERS = {1, 2, 3}
 
 
@@ -17,14 +17,14 @@ class RegistryError(Exception):
 
 def load_companies(
     path: str | Path = "config/companies.csv",
-    allow_extra: bool = False,
+    allow_extra: bool = True,
 ) -> list[Company]:
     """Load and validate company list from CSV.
 
     Rules:
-    - Header must be exact: name,ats,slug,tier (optional 'extra' column allowed only if allow_extra=True).
+    - Header: name,ats,slug,tier (optional 'extra' column allowed from Phase 8 onward).
     - Lines starting with '#' or blank lines are ignored.
-    - ats must be one of: greenhouse, lever, ashby.
+    - ats must be one of: greenhouse, lever, ashby, smartrecruiters, workable, workday.
     - tier must be one of: 1, 2, 3.
     - Duplicate (ats, slug) pairs keep the first and log a warning.
     """
@@ -78,13 +78,14 @@ def load_companies(
             )
         if not allow_extra and len(row) > 4:
             raise RegistryError(
-                f"Row {row_idx} in {p} has {len(row)} columns, expected exactly 4 (extra column forbidden before Phase 8): {row}"
+                f"Row {row_idx} in {p} has {len(row)} columns, expected exactly 4: {row}"
             )
 
         name = row[0].strip()
         ats = row[1].strip().lower()
         slug = row[2].strip()
         tier_str = row[3].strip()
+        extra = row[4].strip() if len(row) > 4 and row[4].strip() else None
 
         if not name:
             raise RegistryError(f"Row {row_idx} in {p} has empty company name")
@@ -107,7 +108,7 @@ def load_companies(
                 f"Row {row_idx} in {p} has invalid tier {tier}. Must be 1, 2, or 3"
             )
 
-        comp = Company(name=name, ats=ats, slug=slug, tier=tier)
+        comp = Company(name=name, ats=ats, slug=slug, tier=tier, extra=extra)
         if comp.key in seen_keys:
             logger.warning("Duplicate company key '%s' found at row %d; skipping duplicate", comp.key, row_idx)
             continue
