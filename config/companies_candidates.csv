@@ -1,0 +1,5 @@
+name,ats,slug,tier,job_count,india_job_count,board_name,sample_url,source
+Stripe,greenhouse,stripe,2,723,48,Stripe,https://stripe.com/jobs/search?gh_jid=8172487,probe
+Palantir,lever,palantir,3,312,0,,https://jobs.lever.co/palantir/6ed76ce8-4156-4b60-b120-403538bd66cd,probe
+Ramp,ashby,ramp,3,164,0,,https://jobs.ashbyhq.com/ramp/34413f8d-26bf-4bbc-8ade-eb309a0e2245,probe
+InMobi,greenhouse,inmobi,2,77,46,InMobi ,https://job-boards.greenhouse.io/inmobi/jobs/7925318,probe

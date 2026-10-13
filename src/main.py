@@ -11,6 +11,7 @@ import time
 import aiohttp
 from src.adapters import ADAPTERS
 from src.config import ConfigError, load_config
+from src.discovery import run_discovery
 from src.export import export_excel
 from src.filters import evaluate
 from src.models import Company, Job
@@ -331,12 +332,12 @@ def main(argv: list[str] | None = None) -> int:
     stats_parser = subparsers.add_parser("stats", help="Show database statistics")
     stats_parser.set_defaults(func=stats_command)
 
-    # discover (Phase 7)
+    # discover
     discover_parser = subparsers.add_parser("discover", help="Discover company ATS slugs")
     discover_parser.add_argument("--input", action="append", help="Input company file(s)")
     discover_parser.add_argument("--rps", type=float, default=2.0, help="Requests per second limit")
     discover_parser.add_argument("--merge", action="store_true", help="Merge discovered candidates into companies.csv")
-    discover_parser.set_defaults(func=lambda args: print("discover command will be wired in Phase 7") or 0)
+    discover_parser.set_defaults(func=lambda args: asyncio.run(run_discovery(args)))
 
     # test-email
     test_email_parser = subparsers.add_parser("test-email", help="Send a test alert email")
