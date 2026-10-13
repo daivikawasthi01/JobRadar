@@ -57,7 +57,7 @@ def probe_greenhouse(slug: str, fixtures_dir: Path) -> dict:
 
     # Save first ~5 jobs as fixture
     sample_data = dict(data)
-    sample_data["jobs"] = jobs[:5]
+    sample_data["jobs"] = jobs[:10]
     fixture_path = fixtures_dir / "greenhouse_sample.json"
     with open(fixture_path, "w", encoding="utf-8") as f:
         json.dump(sample_data, f, indent=2)
@@ -83,7 +83,7 @@ def probe_lever(slug: str, fixtures_dir: Path) -> list:
             print("Sample posting overview:")
             for k in ["id", "text", "hostedUrl", "categories", "createdAt", "workplaceType", "salaryRange"]:
                 print(f"  {k}: {data[0].get(k)}")
-        sample_data = data[:5]
+        sample_data = data[:10]
     else:
         sample_data = data
 
@@ -115,7 +115,7 @@ def probe_ashby(slug: str, fixtures_dir: Path) -> dict:
             print(f"  {k}: {jobs[0].get(k)}")
 
     sample_data = dict(data)
-    sample_data["jobs"] = jobs[:5]
+    sample_data["jobs"] = jobs[:10]
     fixture_path = fixtures_dir / "ashby_sample.json"
     with open(fixture_path, "w", encoding="utf-8") as f:
         json.dump(sample_data, f, indent=2)
