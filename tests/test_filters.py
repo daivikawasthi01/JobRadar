@@ -226,3 +226,79 @@ def test_case_24(cfg):
     assert res.matched is True
     assert res.min_exp is None
     assert res.exp_signal == "unknown"
+
+
+def test_grad_year_matching_target_2027():
+    cfg_2027 = FilterConfig(
+        target_grad_years=[2027],
+        allow_unspecified_grad_year=True,
+    )
+
+    # 1. Matches when 2027 explicitly mentioned
+    job_2027 = make_test_job("Software Engineer", "Eligibility: 2027 batch BTech students.", "Bengaluru, India")
+    res1 = evaluate(job_2027, cfg_2027)
+    assert res1.matched is True
+    assert 2027 in res1.grad_years
+
+    # 2. Rejects when only past batches mentioned
+    job_past = make_test_job("Software Engineer", "Eligibility: 2025 and 2026 batch passouts only.", "Bengaluru, India")
+    res2 = evaluate(job_past, cfg_2027)
+    assert res2.matched is False
+    assert res2.reject_reason == "grad_year_mismatch"
+    assert res2.grad_years == [2025, 2026]
+
+    # 3. Matches when batch range includes 2027
+    job_range = make_test_job("Software Engineer", "Hiring 2026 - 2027 graduates.", "Bengaluru, India")
+    res3 = evaluate(job_range, cfg_2027)
+    assert res3.matched is True
+    assert 2027 in res3.grad_years
+
+    # 4. Matches when no batch is mentioned (allow_unspecified_grad_year=True)
+    job_no_mention = make_test_job("Software Engineer", "Requirements: B.Tech in CS with good problem solving.", "Bengaluru, India")
+    res4 = evaluate(job_no_mention, cfg_2027)
+    assert res4.matched is True
+    assert res4.grad_years == []
+
+    # 5. Rejects when no batch mentioned if allow_unspecified_grad_year=False
+    cfg_strict = FilterConfig(
+        target_grad_years=[2027],
+        allow_unspecified_grad_year=False,
+    )
+    res5 = evaluate(job_no_mention, cfg_strict)
+    assert res5.matched is False
+    assert res5.reject_reason == "grad_year_unknown"
+
+
+def test_internship_matching_for_2027():
+    # When intern is excluded from exclusion list (as in config/config.yaml)
+    cfg_with_interns = FilterConfig(
+        roles_exclude_title=["senior", "lead", "staff", "manager"],
+        target_grad_years=[2027],
+        allow_unspecified_grad_year=True,
+    )
+
+    job_intern = make_test_job(
+        "Software Engineer Intern",
+        "Looking for final year B.Tech students graduating in 2027.",
+        "Bengaluru, India",
+    )
+    res = evaluate(job_intern, cfg_with_interns)
+    assert res.matched is True
+    assert res.min_exp == 0.0
+    assert res.exp_signal == "title_entry"
+    assert 2027 in res.grad_years
+
+
+def test_runtime_config_matches_user_criteria():
+    from src.config import load_config
+    cfg = load_config("config/config.yaml")
+
+    assert cfg.filters.target_grad_years == [2027]
+    assert cfg.filters.allow_unspecified_grad_year is True
+    assert "intern" not in cfg.filters.roles_exclude_title
+    assert "India" in cfg.filters.countries
+
+    # Test an internship job evaluated with runtime config
+    job = make_test_job("SDE Intern", "Looking for enthusiastic problem solvers.", "Hyderabad, India")
+    res = evaluate(job, cfg.filters)
+    assert res.matched is True

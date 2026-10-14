@@ -1,5 +1,4 @@
-"""Job filtering logic: role inclusion/exclusion, experience extraction, and location detection."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import re
 from src.config import FilterConfig
 from src.models import Job
@@ -8,11 +7,12 @@ from src.models import Job
 @dataclass
 class FilterResult:
     matched: bool
-    reject_reason: str | None = None  # e.g. "title_excluded", "role_not_included", "experience_too_high", "country_not_allowed"
+    reject_reason: str | None = None  # e.g. "title_excluded", "role_not_included", "experience_too_high", "country_not_allowed", "grad_year_mismatch", "grad_year_unknown"
     country: str | None = None
     min_exp: float | None = None
     max_exp: float | None = None
     exp_signal: str = "unknown"  # "fresher_keyword" | "range" | "plus" | "at_least" | "plain" | "up_to" | "title_entry" | "unknown"
+    grad_years: list[int] = field(default_factory=list)
 
 
 # Precompiled experience regexes
@@ -66,6 +66,62 @@ US_STATES = {
 }
 
 US_CITIES = ["san francisco", "new york", "seattle", "austin", "boston", "chicago"]
+
+# Precompiled graduation year / batch regexes
+RE_BATCH_RANGE = re.compile(
+    r"\b(202\d|203\d)\s*(?:(-|–|/|to)|(,|\band\b|\bor\b))\s*(202\d|203\d)\s*(?:batch(?:es)?|passout|passouts|passing\s*out|pass-outs?|graduat\w+)\b",
+    re.IGNORECASE,
+)
+RE_BATCH_POSTFIX = re.compile(
+    r"\b(202\d|203\d)\s*(?:batch(?:es)?|passout|passouts|passing\s*out|pass-outs?|graduat\w+)\b",
+    re.IGNORECASE,
+)
+RE_BATCH_PREFIX = re.compile(
+    r"\b(?:batch(?:es)?|class|graduating\s*in|graduates?\s*of|passouts?\s*of|graduation\s*year|year\s*of\s*graduation|year\s*of\s*passing|yog|yop)\s*(?:of\s*|:\s*|\s*-\s*|is\s*)?(202\d|203\d)(?:\s*(?:(-|–|/|to)|(,|\band\b|\bor\b))\s*(202\d|203\d))?\b",
+    re.IGNORECASE,
+)
+RE_BATCH_LIST = re.compile(
+    r"\b(?:batch(?:es)?|graduates?|passing\s*out|yog|yop)\s*[:=-]\s*([0-9\s,/-]+)",
+    re.IGNORECASE,
+)
+
+
+def parse_grad_years(title: str, description: str) -> set[int]:
+    """Parse explicit graduation or batch years mentioned in title or description."""
+    text = title + "\n" + (description or "")
+    years: set[int] = set()
+
+    for m in RE_BATCH_RANGE.finditer(text):
+        y1 = int(m.group(1))
+        is_range = bool(m.group(2) and m.group(2) in ("-", "–", "/", "to"))
+        y2 = int(m.group(4))
+        if is_range and y1 < y2 and y2 - y1 <= 5:
+            for y in range(y1, y2 + 1):
+                years.add(y)
+        else:
+            years.add(y1)
+            years.add(y2)
+
+    for m in RE_BATCH_POSTFIX.finditer(text):
+        years.add(int(m.group(1)))
+
+    for m in RE_BATCH_PREFIX.finditer(text):
+        y1 = int(m.group(1))
+        years.add(y1)
+        if m.group(4):
+            y2 = int(m.group(4))
+            is_range = bool(m.group(2) and m.group(2) in ("-", "–", "/", "to"))
+            if is_range and y1 < y2 and y2 - y1 <= 5:
+                for y in range(y1, y2 + 1):
+                    years.add(y)
+            else:
+                years.add(y2)
+
+    for m in RE_BATCH_LIST.finditer(text):
+        for num in re.findall(r"\b(202\d|203\d)\b", m.group(1)):
+            years.add(int(num))
+
+    return years
 
 
 def detect_country(location: str | None) -> str | None:
@@ -211,7 +267,7 @@ def parse_experience(title: str, description: str) -> tuple[float | None, float 
     title_l = title.lower()
     entry_tokens = [
         "associate", "junior", "jr", "trainee", "graduate",
-        "new grad", "entry level", "sde-1", "sde 1", "sde1",
+        "new grad", "entry level", "intern", "internship", "sde-1", "sde 1", "sde1",
     ]
     for token in entry_tokens:
         if token == "jr":
@@ -233,14 +289,16 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
     Order of checks (stops at first rejection):
     1. Title excluded
     2. Role included
-    3. Experience
-    4. Country / Location
+    3. Graduation year / batch
+    4. Experience
+    5. Country / Location
     """
     title_l = job.title.lower()
 
-    # Always compute exp and country for metadata / debugging
+    # Always compute exp, country, and grad years for metadata / debugging
     min_exp, max_exp, exp_signal = parse_experience(job.title, job.description)
     country = detect_country(job.location)
+    grad_years = sorted(parse_grad_years(job.title, job.description))
 
     # 1. Excluded title check
     for token in cfg.roles_exclude_title:
@@ -254,6 +312,7 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
                     min_exp=min_exp,
                     max_exp=max_exp,
                     exp_signal=exp_signal,
+                    grad_years=grad_years,
                 )
         else:
             if re.search(r"\b" + re.escape(tok) + r"\b", title_l):
@@ -264,6 +323,7 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
                     min_exp=min_exp,
                     max_exp=max_exp,
                     exp_signal=exp_signal,
+                    grad_years=grad_years,
                 )
 
     if (
@@ -278,6 +338,7 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
             min_exp=min_exp,
             max_exp=max_exp,
             exp_signal=exp_signal,
+            grad_years=grad_years,
         )
 
     # 2. Role included check
@@ -296,7 +357,33 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
             min_exp=min_exp,
             max_exp=max_exp,
             exp_signal=exp_signal,
+            grad_years=grad_years,
         )
+
+    # 2b. Graduation year check
+    if cfg.target_grad_years:
+        if grad_years:
+            if not any(y in cfg.target_grad_years for y in grad_years):
+                return FilterResult(
+                    matched=False,
+                    reject_reason="grad_year_mismatch",
+                    country=country,
+                    min_exp=min_exp,
+                    max_exp=max_exp,
+                    exp_signal=exp_signal,
+                    grad_years=grad_years,
+                )
+        else:
+            if not cfg.allow_unspecified_grad_year:
+                return FilterResult(
+                    matched=False,
+                    reject_reason="grad_year_unknown",
+                    country=country,
+                    min_exp=min_exp,
+                    max_exp=max_exp,
+                    exp_signal=exp_signal,
+                    grad_years=[],
+                )
 
     # 3. Experience check
     if min_exp is not None and min_exp > cfg.max_min_experience:
@@ -307,6 +394,7 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
             min_exp=min_exp,
             max_exp=max_exp,
             exp_signal=exp_signal,
+            grad_years=grad_years,
         )
 
     if min_exp is None and not cfg.keep_unknown_experience:
@@ -317,6 +405,7 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
             min_exp=min_exp,
             max_exp=max_exp,
             exp_signal=exp_signal,
+            grad_years=grad_years,
         )
 
     # 4. Country check
@@ -330,6 +419,7 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
                 min_exp=min_exp,
                 max_exp=max_exp,
                 exp_signal=exp_signal,
+                grad_years=grad_years,
             )
     else:
         if not loc_clean or country is None:
@@ -340,6 +430,7 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
                 min_exp=min_exp,
                 max_exp=max_exp,
                 exp_signal=exp_signal,
+                grad_years=grad_years,
             )
 
         if cfg.countries and country not in cfg.countries:
@@ -350,6 +441,7 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
                 min_exp=min_exp,
                 max_exp=max_exp,
                 exp_signal=exp_signal,
+                grad_years=grad_years,
             )
 
     return FilterResult(
@@ -359,4 +451,5 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
         min_exp=min_exp,
         max_exp=max_exp,
         exp_signal=exp_signal,
+        grad_years=grad_years,
     )

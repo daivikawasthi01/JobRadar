@@ -27,6 +27,18 @@ filters:
     - trainee
     - new grad
     - junior
+    - software engineering intern
+    - software engineer intern
+    - software developer intern
+    - sde intern
+    - engineering intern
+    - developer intern
+    - tech intern
+    - backend intern
+    - frontend intern
+    - ai intern
+    - ml intern
+    - data intern
   roles_exclude_title:
     - senior
     - sr
@@ -38,7 +50,7 @@ filters:
     - head
     - architect
     - vp
-    - intern            # remove this line to include internships
+    # intern removed to include internships for final year student
   entry_level_title_tokens:
     - associate
     - junior
@@ -47,11 +59,15 @@ filters:
     - graduate
     - new grad
     - entry level
+    - intern
+    - internship
     - sde-1
     - sde 1
     - sde1
   max_min_experience: 2
   keep_unknown_experience: true
+  target_grad_years: [2027]
+  allow_unspecified_grad_year: true
   countries: [India]
   include_remote_unspecified: false
 

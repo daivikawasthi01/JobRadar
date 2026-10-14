@@ -70,6 +70,8 @@ class FilterConfig:
     keep_unknown_experience: bool = True
     countries: list[str] = field(default_factory=lambda: ["India"])
     include_remote_unspecified: bool = False
+    target_grad_years: list[int] = field(default_factory=list)
+    allow_unspecified_grad_year: bool = True
 
 
 @dataclass
@@ -156,6 +158,8 @@ def load_config(path: str | Path = "config/config.yaml") -> Config:
         keep_unknown_experience=bool(filters_raw.get("keep_unknown_experience", def_filter.keep_unknown_experience)),
         countries=filters_raw.get("countries", def_filter.countries),
         include_remote_unspecified=bool(filters_raw.get("include_remote_unspecified", def_filter.include_remote_unspecified)),
+        target_grad_years=[int(y) for y in filters_raw.get("target_grad_years", def_filter.target_grad_years)],
+        allow_unspecified_grad_year=bool(filters_raw.get("allow_unspecified_grad_year", def_filter.allow_unspecified_grad_year)),
     )
 
     def_poll = PollingConfig()
