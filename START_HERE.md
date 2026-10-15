@@ -45,6 +45,9 @@ Use this template, changing the phase number:
 | 7 | Company discovery (`discover`) + `--merge` | Runs for hours, resumable; spot-check ~20 hits before `--merge` |
 | 8, 9 | Optional: Workday/Workable/SmartRecruiters, custom pages | Only if you ask |
 
+Optional monthly company source: run `python -m src.main discover-hn` to save company names from the latest Hacker News “Who is hiring?” thread under `config/inputs/`, then run `python -m src.main discover` to probe their ATS boards.
+The separate weekly Common Crawl workflow screens five ATSs and opens a pull request with passing boards; review it before merging.
+
 Phase 5 extra note: tell the agent how you load `.env` (`set -a; source .env; set +a`). Do not paste your app password into the chat.
 
 ## 3. When the agent goes wrong (copy-paste fixes)

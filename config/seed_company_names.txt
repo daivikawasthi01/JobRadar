@@ -2043,3 +2043,518 @@ Voltas
 Welspun Energy
 Yamaha
 Zydus
+
+# JobRadar seed company names: ADDITIONS (small / early-stage startups)
+# Names only, written from memory. NOT verified. The discover command checks each one against real
+# ATS endpoints and silently drops names that don't match. Defunct or wrong names are harmless.
+# Deduped against the existing seed_company_names.txt. Append with:
+#   cat seed_company_names_startups.txt >> seed_company_names.txt
+
+# ---------- India: AI-native startups (seed to Series B, small eng teams) ----------
+Riverline
+Composio
+Bolna
+Smallest.ai
+Portkey
+Lyzr
+Maxim AI
+Emergent
+Rocket.new
+Hyperbots
+TrueFoundry
+Neysa
+Fireflies.ai
+Gan.ai
+Nurix AI
+Ema
+RapidClaims
+Pipeshift
+Pibit.ai
+OnFinance AI
+Sarthi AI
+Dubverse
+Slang Labs
+Anakin
+Subtl.ai
+Dashtoon
+Toonsutra
+Sunbird AI
+Fibr AI
+Zocket
+Quickreel
+Vitra AI
+Sprout.ai
+Lamatic
+Maya Research
+Neuralgarage
+Dataflow Analytics
+Pocketful
+
+# ---------- India: B2B SaaS and dev tools (Chennai / Bengaluru / Pune scaleups) ----------
+Sprinto
+Scrut Automation
+Cyware
+Rocketlane
+Fyle
+Nected
+Airmeet
+Spendflo
+Kapture CX
+Everstage
+Kovai.co
+Zenduty
+Middleware
+Hoppscotch
+Zenskar
+Rocketium
+Bizongo
+Springworks
+HackerEarth
+HackerRank
+Locus
+Elastic Run
+Fleek Logistics
+Pickrr
+Dyte
+100ms
+Zoop.one
+Pesto Tech
+Unstop
+Cuvette
+CodeChef
+Zolvit
+Shopflo
+Bitespeed
+Zipy
+Pazcare
+Loop Health
+Onsurity
+Ideas2IT
+Saama
+CloudSEK
+Cyble
+Safe Security
+Sequretek
+Appknox
+Seclore
+Quick Heal
+Exotel Technologies
+Hyperswitch
+
+# ---------- India: fintech startups (lending, wealth, trading, infra) ----------
+Digio
+SignDesk
+Surepass
+Karza Technologies
+Mintoak
+Winvesta
+Sensibull
+Fyers
+Tickertape
+Grip Invest
+Wint Wealth
+Jiraaf
+Kissht
+Fibe
+Zype
+MoneyTap
+Ketto
+Mpokket
+Snapmint
+Uni Cards
+Recur Club
+Klub
+Kiwi
+Aspora
+Vance
+Stack
+Zepto Money
+Dodo Payments
+Ring
+Nira Finance
+Veritas Finance
+Ugro Capital
+Moneyboxx
+Pocketly
+Lemonn
+Alice Blue
+Dhan Technologies
+Fundsindia
+Wealthy
+Dezerv Wealth
+Sahi
+Hyperface Technologies
+
+# ---------- India: EV, hardware, deep tech, space, defence ----------
+Atomberg
+Raptee
+Exponent Energy
+Simple Energy
+Matter Motor Works
+Oben Electric
+Log9 Materials
+River Mobility
+Tonbo Imaging
+Garuda Aerospace
+NewSpace Research
+Throttle Aerospace
+Mindgrove Technologies
+InCore Semiconductors
+Netrasemi
+Morphing Machines
+Agnit Semiconductors
+Aheesa
+TakeMe2Space
+Ati Motors
+CynLr
+Sastra Robotics
+Genrobotics
+Addverb
+Ottonomy
+String Bio
+Ultrahuman Healthcare
+Bombay Hardware
+
+# ---------- India: consumer and marketplace startups with real engineering teams ----------
+Slikk
+KNOT
+Zeno Health
+Minimalist
+The Whole Truth
+Sleepy Owl
+Bombay Shaving Company
+Snitch
+Bluestone Jewellery
+Giva
+Lahori
+Noise Labs
+Zepto Cafe
+Bistro
+Swiggy Instamart
+Rapido Technologies
+Yulu Mobility
+Chalo
+Zingbus Technologies
+Cityflo Mobility
+Vahak
+BlackBuck Technologies
+Wheelseye
+Rivigo Services
+Cubeaisolutions
+Eloelo Media
+Kuku Technologies
+Seekho Media
+Spiral
+Pratilipi Media
+Hike Technologies
+Rooter Sports
+Sportskeeda Media
+FanCode
+Ultimate Kronos
+Bhanzu Education
+PW Skills
+Scaler Academy
+Masai Technologies
+Newton School of Technology
+AlmaBetter Education
+Sunstone Eduversity
+Crio Technologies
+Coding Blocks Education
+Edunext
+Cuemath Education
+
+# ---------- Global early-stage and open-source startups that hire remotely in India ----------
+Appwrite
+Cal.com
+Trigger.dev
+Infisical
+Formbricks
+Windmill
+Typesense
+Meilisearch
+Medusa
+Resend
+Clerk
+Mintlify
+Dub
+Axiom
+Inngest
+Convex
+Turso
+Upstash
+Zuplo
+Speakeasy
+Stainless
+Encore
+Tinybird
+Novu
+Kestra
+Directus
+Strapi
+Payload CMS
+Ghost
+Plausible
+Hyperswitch Juspay
+Clay
+Mercor
+Harvey
+Decagon
+Sierra
+Ashby
+Lovable
+Bolt.new
+StackBlitz
+Vapi
+Retell AI
+Deepgram
+AssemblyAI
+ElevenLabs Inc
+Hume AI
+Cartesia
+Sesame
+Pylon
+Mintlify Inc
+Merge
+Nango
+Paragon
+Truss
+Ramp India
+Rippling India
+Deel India
+Remote.com
+Oyster HR
+Papaya Global
+Multiplier
+Atlas
+Pilot.com
+Wellfound Inc
+
+# JobRadar seed company names: ADDITIONS from your LinkedIn intern search results
+# Deduped against seed_company_names.txt and seed_company_names_startups.txt.
+# Append with: cat seed_company_names_linkedin.txt >> seed_company_names.txt
+
+# ---------- Engineering / AI / data / product-tech leaning ----------
+Lexsi Labs
+Portcast
+Sony Research India
+Irdeto
+Clearwater Analytics
+Kaleris
+FourKites
+Instawork
+Interview Kickstart
+Qapita
+Smytten
+Flam
+Alaan
+Heads Up For Tails
+Aftershoot
+AlgoTest
+GoQuant
+Binary
+Potpie AI
+AI Accountant
+CloudAnzen.ai
+Forage AI
+Pharmatek Solutions
+BEMPU Health
+Varaha
+Trakto Technologies
+Claro Energy
+Libra AI
+Adfluence Hub
+Mico
+Faclon Labs
+Uplabh
+Training Basket
+Startups Map
+Surgy Innovation Labs
+Enerjazz
+Peakflo
+SuperKalam
+SBNRI
+RiseUpp
+Uma
+Bluepin
+Karta
+Fam
+Sarvam
+Kuku
+Magna International
+Landmark Group
+Styli
+Dexter's Tech
+Devryxa
+Vortenza Systems
+Vortenza
+Crossing Infotech
+ThinkNovaa
+internmo
+Skillzenloop
+Zetheta Algorithms
+Nexal IIT
+RingTrunk
+SpidoAI
+Xiarch Bharat
+Blue Machines AI
+Thalamus AI
+Augle AI
+TartanHQ
+Amarsia
+techolution
+Quanterian
+CausalFunnel
+Recollia
+Akaike Technologies
+TalentXM
+Raysoft.ai
+Discover Dollar
+Lanmea
+Papigen
+YourTrainer
+Faveo
+Incubyte
+Loopn
+Newtrace
+AIONOS
+Gritsa Technologies
+Selah Digital
+MetAntz
+CoverSelf
+FinacPlus
+Aaizel International Technologies
+Pace Robotics
+Augnito
+Selah
+Gravity.fast
+Hunch
+Nudge
+Comify
+Vela
+GreedyGame
+Constraal
+TheJobsMap
+Magevik
+Pineswift Technologies
+eTeam
+Crossing Hurdles
+Joveo
+Echo Initiative by Joveo
+Certinal
+Qubitara Technologies
+Bugle Technologies
+Kuvaka Tech
+BotMakers
+ELUNO
+Deckoviz Space Labs
+Alaris Aerospace Systems India
+IG Defence
+Sarla Aviation
+Tradeshala
+LEAD Group
+iVoyant
+Codefeast
+Prepisely
+Gryphon Cyber
+SilverCross Medisciences
+Micron school erp
+Buildesk
+GwayERP
+Graphic Shaala
+Pacify Medical Technologies
+2070 Health
+Yaanendriya
+EnglishBhashi
+Zippee
+Zupper
+Zopper
+RenewBuy
+OnGrid
+Attero
+Jodo
+AuthBridge Research Services
+
+# ---------- Business / ops / consumer startups (mostly non-engineering listings; your filter will reject those titles) ----------
+NextNation
+WedMeGood
+Biggbell
+SaasAro
+Fango
+Qonfido
+Thommidhi
+The Layered Studio
+LovPics
+BID.ai
+Learn Lumes
+RegASK
+Leaf Studios
+VAYUZ Technologies
+SLB Gurgaon
+Rusk Media
+Dutient Labs
+Artikin
+Art of Puja
+SmartQ
+Debound
+ADSMUNCH
+Cloutgency
+Shrut
+Better.com
+CredX
+GenAxle
+Openleaf
+MaduraiStartups
+Flick TV
+expertbells
+Adworkly
+Meragi
+Finza Global
+Maxsure Bidders
+Kustodian.life
+Focus Realm
+TECHEAGLE
+Accompany Akki
+Social Nanban
+Origin Materials
+Atlas Consolidated
+Socavi
+Identicube
+Stroffe
+LearningShala
+YMGrad
+Darwin Labs
+Home Pick
+Tejaki
+INDICOLD
+D2C Insider
+ThePrepLab
+Kerten Hospitality
+WIQVA
+Popbrain
+InterPool
+EzyHelpers
+Knights & Walker
+PaisaWapas
+The Test Tribe
+Nutrabay
+Adbanana
+JAKSON Group
+Recharga
+Myraid Media
+Skillinabox
+Calmveda
+Robokalam
+Live Your Best Life
+xIoTz
+Srifix studios
+ContentNinja
+HumaWings
+Zettx
+AGRIM
+Sweet Karam Coffee
+pacr running
+Brugo
+360 Ghar
+Unifynd Labs
+Helper4U Services
+The India Prosperity Initiative

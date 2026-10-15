@@ -1,0 +1,51 @@
+{
+  "id": 200,
+  "type": "story",
+  "title": "Ask HN: Who is hiring? (October 2026)",
+  "children": [
+    {
+      "id": 301,
+      "type": "comment",
+      "text": "Acme AI | Software Engineer | Bengaluru | Remote<p>We build useful tools."
+    },
+    {
+      "id": 302,
+      "type": "comment",
+      "text": "<p>**Northstar Labs** — Research Engineer — Remote</p><p>More details.</p>"
+    },
+    {
+      "id": 303,
+      "type": "comment",
+      "text": "Acme AI | Another role | Remote"
+    },
+    {
+      "id": 304,
+      "type": "comment",
+      "text": "A standalone comment without a recognizable header delimiter."
+    },
+    {
+      "id": 305,
+      "type": "comment",
+      "deleted": true,
+      "text": "Deleted Company | Engineer | Remote"
+    },
+    {
+      "id": 306,
+      "type": "comment",
+      "dead": true,
+      "text": "Dead Company | Engineer | Remote"
+    },
+    {
+      "id": 307,
+      "type": "comment",
+      "text": "Another standalone comment without a header delimiter.",
+      "children": [
+        {
+          "id": 308,
+          "type": "comment",
+          "text": "Reply Company | Engineer | Remote"
+        }
+      ]
+    }
+  ]
+}

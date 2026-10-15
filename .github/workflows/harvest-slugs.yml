@@ -1,0 +1,80 @@
+name: harvest-common-crawl-slugs
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: common-crawl-harvest
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Prepare review branch
+        id: review-branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="automation/common-crawl-harvest"
+          pull_number="$(gh pr list --head "$GITHUB_REPOSITORY_OWNER:$branch" --state open --json number --jq '.[0].number // empty')"
+          git fetch origin main
+          if [ -n "$pull_number" ]; then
+            git fetch origin "$branch"
+            git switch --create "$branch" --track "origin/$branch"
+            git merge --no-edit origin/main
+            echo "pull_number=$pull_number" >> "$GITHUB_OUTPUT"
+          else
+            git switch --force-create "$branch" origin/main
+            echo "pull_number=" >> "$GITHUB_OUTPUT"
+          fi
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
+      - name: Harvest and screen Common Crawl boards
+        run: python scripts/harvest_slugs.py --crawl-count 3 --max-screened 3000
+
+      - name: Create or update review pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PULL_NUMBER: ${{ steps.review-branch.outputs.pull_number }}
+          REVIEW_BRANCH: ${{ steps.review-branch.outputs.branch }}
+        run: |
+          git add config/companies.csv config/commoncrawl_harvest.json
+          if git diff --cached --quiet; then
+            echo "No screened board or cache changes to propose."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update screened Common Crawl ATS boards"
+          if [ -n "$PULL_NUMBER" ]; then
+            git push origin "$REVIEW_BRANCH"
+            gh pr edit "$PULL_NUMBER" \
+              --title "Review weekly Common Crawl ATS boards" \
+              --body "Updates the resumable Common Crawl screening cache and proposes passing ATS boards in config/companies.csv. Review the company names and tiers before merging; this workflow does not change main directly."
+          else
+            git push --force origin "$REVIEW_BRANCH"
+            gh pr create \
+              --base main \
+              --head "$REVIEW_BRANCH" \
+              --title "Review weekly Common Crawl ATS boards" \
+              --body "Updates the resumable Common Crawl screening cache and proposes passing ATS boards in config/companies.csv. Review the company names and tiers before merging; this workflow does not change main directly."
+          fi

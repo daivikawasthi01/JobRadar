@@ -227,6 +227,19 @@ This is the biggest piece of manual work. Sources:
 4. **Careers-page URL detection:** visit `company.com/careers`, check whether it redirects or embeds `boards.greenhouse.io/xyz`, `jobs.lever.co/xyz`, `jobs.ashbyhq.com/xyz`, and so on.
 5. **Manual additions** for companies you specifically want.
 
+### Monthly Hacker News source
+
+Use the latest “Who is hiring?” thread as a source of company names, not as a job feed:
+
+```bash
+python -m src.main discover-hn
+python -m src.main discover
+```
+
+The first command saves a dated names file under `config/inputs/`; the existing discovery command reads that directory and probes the names against supported ATS boards. Run it manually once a month. It does not parse HN posts into jobs, change the seed-name list, or run in the crawl workflow.
+
+For a weekly Common Crawl sweep, `scripts/harvest_slugs.py` queries recent crawl indexes for Greenhouse, Lever, Ashby, Workable, and SmartRecruiters job URLs, screens each board once for India locations or internship titles, and proposes passing boards in a pull request. The workflow caches screened and rejected slugs in `config/commoncrawl_harvest.json`; review proposed company names and tiers before merging. It is separate from the 15-minute crawl.
+
 `companies.csv` format:
 
 ```

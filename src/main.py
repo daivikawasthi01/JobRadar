@@ -14,6 +14,7 @@ from src.config import ConfigError, load_config
 from src.discovery import run_discovery
 from src.export import export_excel
 from src.filters import evaluate
+from src.hn_discovery import HNDiscoveryError, run_hn_discovery
 from src.models import Company, Job
 from src.notify import (
     IST,
@@ -118,6 +119,18 @@ def test_email_command(args: argparse.Namespace) -> int:
         return 1
     finally:
         conn.close()
+
+
+def hn_discovery_command(args: argparse.Namespace) -> int:
+    """Extract company names from the latest HN hiring thread."""
+    setup_logging()
+    try:
+        output_path, count = asyncio.run(run_hn_discovery(args.output_dir))
+    except HNDiscoveryError as exc:
+        print(f"HN discovery error: {exc}", file=sys.stderr)
+        return 1
+    print(f"Extracted {count} company name(s) to {output_path}. Run `python -m src.main discover` to probe ATS boards.")
+    return 0
 
 
 async def run_crawl(args: argparse.Namespace) -> int:
@@ -343,6 +356,18 @@ def main(argv: list[str] | None = None) -> int:
     discover_parser.add_argument("--rps", type=float, default=2.0, help="Requests per second limit")
     discover_parser.add_argument("--merge", action="store_true", help="Merge discovered candidates into companies.csv")
     discover_parser.set_defaults(func=lambda args: asyncio.run(run_discovery(args)))
+
+    # discover-hn
+    hn_parser = subparsers.add_parser(
+        "discover-hn",
+        help="Extract company names from the latest monthly HN hiring thread",
+    )
+    hn_parser.add_argument(
+        "--output-dir",
+        default="config/inputs",
+        help="Directory for the dated names file consumed by `discover`",
+    )
+    hn_parser.set_defaults(func=hn_discovery_command)
 
     # test-email
     test_email_parser = subparsers.add_parser("test-email", help="Send a test alert email")

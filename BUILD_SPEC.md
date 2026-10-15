@@ -82,7 +82,8 @@ These are estimates, not guarantees. The slowest part is the company list, not t
 ├── data/                       # runtime state (gitignored; stored in the `state` release asset)
 ├── scripts/
 │   ├── probe_endpoints.py      # live check, saves fixtures
-│   └── smoke_live.py           # live end-to-end check on a few companies
+│   ├── smoke_live.py           # live end-to-end check on a few companies
+│   └── harvest_slugs.py        # weekly Common Crawl ATS board discovery
 ├── src/
 │   ├── __init__.py
 │   ├── main.py
@@ -109,7 +110,9 @@ These are estimates, not guarantees. The slowest part is the company list, not t
 │   ├── test_filters.py
 │   ├── test_store.py
 │   └── test_notify.py
-└── .github/workflows/crawl.yml
+└── .github/workflows/
+    ├── crawl.yml
+    └── harvest-slugs.yml
 ```
 
 `.gitignore` must include: `.env`, `data/`, `__pycache__/`, `*.pyc`, `.pytest_cache/`, `.venv/`.
@@ -603,6 +606,7 @@ Formatting: frozen header row, autofilter on, column widths set sensibly (title 
 python -m src.main run [--dry-run] [--no-email] [--tier {1,2,3}] [--company SLUG] [--limit N]
 python -m src.main validate            # validate config.yaml and companies.csv, print summary, exit 0/2
 python -m src.main discover --input FILE [--input FILE ...] [--rps 2] [--merge]    # Phase 7
+python -m src.main discover-hn          # fetch latest HN hiring thread into config/inputs/
 python -m src.main stats               # print DB stats
 ```
 
@@ -828,7 +832,20 @@ Do each sub-step separately and stop after each. For every one: verify live firs
 - **9b. `sitemap` adapter** (`ats=sitemap`, `extra` = sitemap URL): fetch the sitemap (follow one level of sitemap indexes), keep URLs whose path matches `/careers/`, `/jobs/`, `/job/`, or `/openings/`. Each URL is one job; fetch the page only for **new** URLs to read its `<title>` / first `<h1>` and body text. Hard cap: 200 new pages per run.
 - **9c. `pagewatch` (top 50 only; `extra` = URL):** hash the visible text (scripts/styles removed, digits stripped to ignore counters) and store it in `meta` under `pagewatch:{company_key}`. If the hash changes, send one alert line "Careers page changed: {name} {url}" in the next email (this is a hint, not a parsed job). Never record it as a Job.
 - **9d. Aggregator API (e.g. Adzuna):** only if its current documentation confirms India coverage and its terms allow this use. Requires the human to register for API keys (`ADZUNA_APP_ID`, `ADZUNA_APP_KEY`). Query terms come from `filters.roles_include`. If India isn't supported, skip and tell the human.
-- **9e. Hacker News "Who is hiring":** low priority (mostly US/remote). Skip unless asked.
+- **9e. Hacker News "Who is hiring" (only if asked):** discovery input only; never parse comments into `Job` records or alert directly.
+  - Search the monthly story with `https://hn.algolia.com/api/v1/search_by_date?tags=story,author_whoishiring&query=Who%20is%20hiring`.
+  - Select the newest story by `created_at_i` whose title is "Who is hiring" (exclude "Who wants to be hired"), then fetch `https://hn.algolia.com/api/v1/items/{story_id}`.
+  - Inspect top-level `children` comments only. From each non-deleted comment, get the first non-empty text line, split on `|` (also accept em-dash separators), and use the first field as the company name. Ignore comments without a recognizable delimiter; deduplicate names.
+  - `python -m src.main discover-hn` writes `config/inputs/hn_who_is_hiring_YYYY-MM.txt`. It is a generated file, refreshed on rerun for that thread; the default `discover` command reads `config/inputs/` and probes its companies against the supported ATS endpoints. Do not modify `seed_company_names.txt`.
+  - Run the command manually once a month before `python -m src.main discover`; do not add it to the 15-minute crawl workflow.
+  - Verify endpoint response shapes live before implementation. Tests use saved synthetic fixtures and never access the network.
+- **9f. Common Crawl ATS slug harvesting (only if asked):** a separate weekly job, never part of the 15-minute crawler.
+  - Read recent collection IDs from `https://index.commoncrawl.org/collinfo.json`; query the official CDX index for Greenhouse (`boards.greenhouse.io`, `job-boards.greenhouse.io`), Lever (`jobs.lever.co`), Ashby (`jobs.ashbyhq.com`), Workable (`apply.workable.com`), and SmartRecruiters (`jobs.smartrecruiters.com`) job URLs.
+  - Use low-rate URL-prefix partitions, honor `Retry-After`, recursively split failed prefixes, and persist completed/pending work. The index can time out for broad queries; report unresolved partitions rather than silently treating them as empty. Do not overload the Common Crawl index.
+  - Extract a slug only from a recognized job-detail URL. Screen each unseen `ats:slug` once through its public ATS adapter. Keep the board if any listed job has an India location or an intern-like title; cache both accepted and rejected outcomes. Temporary network failures are not cached as rejections.
+  - Append passing boards to `config/companies.csv` on a review branch; use tier 2 when India jobs exist, otherwise tier 3. The weekly GitHub Actions workflow opens/updates a PR and never pushes directly to `main`.
+  - Keep the screening cache in `config/commoncrawl_harvest.json` so rejected boards are not rechecked. Cap work per run and retain pending boards for the next run.
+  - Tests use local response fixtures/mocks only. Verify Common Crawl response formats live in a bounded manual smoke test before enabling the weekly schedule.
 
 
 ---
