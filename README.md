@@ -213,8 +213,11 @@ Each adapter implements: `async fetch(company) -> list[Job]`. Endpoints below ar
 | Workday | `POST https://{tenant}.wd{N}.myworkdayjobs.com/wday/cxs/{tenant}/{site}/jobs` |
 | JSON-LD pages | `GET {extra}`; parse Schema.org `JobPosting` objects from the returned HTML |
 | Recruitee | `GET https://{slug}.recruitee.com/`; parse server-rendered `/o/{job-slug}` job cards |
+| BambooHR | `GET https://{slug}.bamboohr.com/careers/list`; parse the public JSON `result` list |
+| Breezy HR | `GET https://{slug}.breezy.hr/`; parse server-rendered `/p/{job-id}` cards |
 
 Recruitee's public board listing exposes job titles, locations, and workplace labels in HTML; descriptions, posting dates, and salary are not present in the verified listing response and remain empty.
+BambooHR's verified listing response exposes title and location fields but not descriptions, posting dates, or salary. Breezy's verified listing HTML exposes titles and locations; descriptions are on individual job pages and aren't fetched by the board adapter.
 
 Adapter rules:
 - Never crash the whole cycle on one company's failure. Log it and continue.

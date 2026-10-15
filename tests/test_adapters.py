@@ -12,6 +12,8 @@ from src.adapters.workday import WorkdayAdapter
 from src.adapters.jsonld import JsonLdAdapter
 from src.adapters.recruitee import RecruiteeAdapter
 from src.adapters import ADAPTERS
+from src.adapters.bamboohr import BambooHRAdapter
+from src.adapters.breezy import BreezyAdapter
 from src.fetcher import FetchError, NotFoundError
 from src.models import Company, Job
 from src.registry import load_companies
@@ -402,6 +404,131 @@ def test_recruitee_fetch_rejects_invalid_slug():
         asyncio.run(RecruiteeAdapter().fetch(None, comp))
 
 
+def test_bamboohr_adapter_parses_public_listing_fixture():
+    comp = Company(name="TestCorp", ats="bamboohr", slug="testcorp", tier=2)
+    raw = json.loads((FIXTURES_DIR / "bamboohr_sample.json").read_text(encoding="utf-8"))
+
+    jobs = BambooHRAdapter().parse(raw, comp)
+
+    assert len(jobs) == 2
+    first = jobs[0]
+    assert first.job_id == "bamboohr:testcorp:2401"
+    assert first.company_key == "bamboohr:testcorp"
+    assert first.title == "Software Engineer Intern"
+    assert first.location == "Bengaluru, Karnataka"
+    assert first.url == "https://testcorp.bamboohr.com/careers/2401"
+    assert first.remote is False
+    assert first.description == ""
+    assert first.posted_at is None
+    assert first.salary is None
+    assert ADAPTERS["bamboohr"].ats == "bamboohr"
+
+
+def test_bamboohr_adapter_skips_malformed_entries_and_duplicate_ids():
+    comp = Company(name="TestCorp", ats="bamboohr", slug="testcorp", tier=2)
+    raw = {
+        "result": [
+            {"id": None, "jobOpeningName": "Missing ID"},
+            {"id": "1", "jobOpeningName": ""},
+            {"id": "2", "jobOpeningName": "Good Role"},
+            {"id": "2", "jobOpeningName": "Duplicate ID"},
+        ]
+    }
+
+    jobs = BambooHRAdapter().parse(raw, comp)
+
+    assert len(jobs) == 1
+    assert jobs[0].url == "https://testcorp.bamboohr.com/careers/2"
+
+
+def test_bamboohr_adapter_fetch_uses_public_careers_list_endpoint():
+    comp = Company(name="TestCorp", ats="bamboohr", slug="testcorp", tier=2)
+    fixture_json = (FIXTURES_DIR / "bamboohr_sample.json").read_text(encoding="utf-8")
+    calls = []
+
+    class FakeResponse:
+        status = 200
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            return None
+
+        async def json(self, content_type=None):
+            return json.loads(fixture_json)
+
+    class FakeSession:
+        def request(self, method, url, **kwargs):
+            calls.append((method, url, kwargs))
+            return FakeResponse()
+
+    jobs = asyncio.run(BambooHRAdapter().fetch(FakeSession(), comp, retries=0))
+
+    assert len(jobs) == 2
+    assert calls[0][0:2] == ("GET", "https://testcorp.bamboohr.com/careers/list")
+
+
+def test_bamboohr_fetch_rejects_invalid_slug():
+    comp = Company(name="TestCorp", ats="bamboohr", slug="bad/slug", tier=2)
+    with pytest.raises(ValueError, match="Invalid BambooHR board slug"):
+        asyncio.run(BambooHRAdapter().fetch(None, comp))
+
+
+def test_breezy_adapter_parses_server_rendered_listing_fixture():
+    comp = Company(name="TestCorp", ats="breezy", slug="testcorp", tier=2)
+    raw_html = (FIXTURES_DIR / "breezy_sample.html").read_text(encoding="utf-8")
+
+    jobs = BreezyAdapter().parse(raw_html, comp)
+
+    assert len(jobs) == 2
+    first = jobs[0]
+    assert first.job_id == "breezy:testcorp:abc123-software-engineer-intern"
+    assert first.company_key == "breezy:testcorp"
+    assert first.title == "Software Engineer Intern"
+    assert first.location == "Bengaluru, IN"
+    assert first.url == "https://testcorp.breezy.hr/p/abc123-software-engineer-intern"
+    assert first.remote is None
+    assert first.description == ""
+    assert first.posted_at is None
+    assert first.salary is None
+    assert ADAPTERS["breezy"].ats == "breezy"
+
+
+def test_breezy_adapter_fetch_uses_public_board_root():
+    comp = Company(name="TestCorp", ats="breezy", slug="testcorp", tier=2)
+    fixture_html = (FIXTURES_DIR / "breezy_sample.html").read_text(encoding="utf-8")
+    calls = []
+
+    class FakeResponse:
+        status = 200
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            return None
+
+        async def text(self):
+            return fixture_html
+
+    class FakeSession:
+        def request(self, method, url, **kwargs):
+            calls.append((method, url, kwargs))
+            return FakeResponse()
+
+    jobs = asyncio.run(BreezyAdapter().fetch(FakeSession(), comp, retries=0))
+
+    assert len(jobs) == 2
+    assert calls[0][0:2] == ("GET", "https://testcorp.breezy.hr/")
+
+
+def test_breezy_fetch_rejects_invalid_slug():
+    comp = Company(name="TestCorp", ats="breezy", slug="bad/slug", tier=2)
+    with pytest.raises(ValueError, match="Invalid Breezy board slug"):
+        asyncio.run(BreezyAdapter().fetch(None, comp))
+
+
 def test_jsonld_adapter_handles_graph_relative_urls_and_malformed_entries():
     comp = Company(
         name="TestCorp",
@@ -545,11 +672,13 @@ def test_registry_with_extra_column(tmp_path):
         "Delivery Hero,smartrecruiters,deliveryhero,2,\n"
         "Fortanix,workable,fortanix,2,\n"
         "AnantaX Technologies,jsonld,anantax,2,https://www.anantaxtechnologies.com/jobs/reactjs-developer-intern-in-rajkot\n"
-        "TestCorp,recruitee,testcorp,2,\n",
+        "TestCorp,recruitee,testcorp,2,\n"
+        "TestCorp,bamboohr,testcorp,2,\n"
+        "TestCorp,breezy,testcorp,2,\n",
         encoding="utf-8",
     )
     comps = load_companies(csv_file, allow_extra=True)
-    assert len(comps) == 5
+    assert len(comps) == 7
     assert comps[0].ats == "workday"
     assert comps[0].extra == "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/jobs"
     assert comps[1].ats == "smartrecruiters"
@@ -557,4 +686,6 @@ def test_registry_with_extra_column(tmp_path):
     assert comps[2].ats == "workable"
     assert comps[3].ats == "jsonld"
     assert comps[4].ats == "recruitee"
+    assert comps[5].ats == "bamboohr"
+    assert comps[6].ats == "breezy"
     assert comps[3].extra == "https://www.anantaxtechnologies.com/jobs/reactjs-developer-intern-in-rajkot"

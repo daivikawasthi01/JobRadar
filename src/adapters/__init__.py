@@ -8,6 +8,8 @@ from src.adapters.workable import WorkableAdapter
 from src.adapters.workday import WorkdayAdapter
 from src.adapters.jsonld import JsonLdAdapter
 from src.adapters.recruitee import RecruiteeAdapter
+from src.adapters.bamboohr import BambooHRAdapter
+from src.adapters.breezy import BreezyAdapter
 
 ADAPTERS: dict[str, Adapter] = {
     "greenhouse": GreenhouseAdapter(),
@@ -18,6 +20,8 @@ ADAPTERS: dict[str, Adapter] = {
     "workday": WorkdayAdapter(),
     "jsonld": JsonLdAdapter(),
     "recruitee": RecruiteeAdapter(),
+    "bamboohr": BambooHRAdapter(),
+    "breezy": BreezyAdapter(),
 }
 
 __all__ = [
@@ -30,5 +34,7 @@ __all__ = [
     "WorkdayAdapter",
     "JsonLdAdapter",
     "RecruiteeAdapter",
+    "BambooHRAdapter",
+    "BreezyAdapter",
     "ADAPTERS",
 ]

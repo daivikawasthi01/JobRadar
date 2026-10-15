@@ -105,6 +105,8 @@ These are estimates, not guarantees. The slowest part is the company list, not t
 │       ├── lever.py
 │       ├── ashby.py
 │       ├── recruitee.py
+│       ├── bamboohr.py
+│       ├── breezy.py
 │       └── jsonld.py
 ├── tests/
 │   ├── fixtures/
@@ -126,7 +128,7 @@ These are estimates, not guarantees. The slowest part is the company list, not t
 
 CSV header (exact): `name,ats,slug,tier` (an optional 5th column `extra` is allowed only from Phase 8 onward; before that, reject files that have it)
 
-- `ats` ∈ `greenhouse | lever | ashby | workable | smartrecruiters | workday | jsonld | recruitee`
+- `ats` ∈ `greenhouse | lever | ashby | workable | smartrecruiters | workday | jsonld | recruitee | bamboohr | breezy`
 - `slug`: the identifier in the board URL
 - For `jsonld`, the optional `extra` column is required and contains the absolute public page URL.
 - `tier` ∈ `1 | 2 | 3` (this is the **base tier**, set by the human or by `discover`):
@@ -408,6 +410,8 @@ Rules for every `parse`:
 | **Lever** | `GET https://api.lever.co/v0/postings/{slug}?mode=json` | Response is a **list**: `id`→native_id, `text`→title, `hostedUrl`→url, `categories.location`→location, `descriptionPlain` (fallback `description` via `html_to_text`; also append text of `lists[]` if present)→description, `createdAt` (epoch ms)→posted_at, `workplaceType=="remote"`→remote, `salaryRange` (if present) → salary text like `"INR 800000-1200000 / year"` |
 | **Ashby** | `GET https://api.ashbyhq.com/posting-api/job-board/{slug}?includeCompensation=true` | `jobs[]`: `id`→native_id, `title`, `jobUrl`→url, `location`→location, `descriptionPlain` (fallback `descriptionHtml` via `html_to_text`)→description, `publishedAt`→posted_at, `isRemote`→remote, skip entries where `isListed` is `false`, compensation summary if present→salary |
 | **Recruitee** | `GET https://{slug}.recruitee.com/` | Verified public boards server-render job anchors at `/o/{job-slug}` with title and location/workplace metadata in HTML; listing pages may omit description, posted date, and salary |
+| **BambooHR** | `GET https://{slug}.bamboohr.com/careers/list` | Verified JSON response has `result[]` with `id`, `jobOpeningName`, `location`, `atsLocation`, and optional `isRemote`; public listing may omit description, posting date, and compensation |
+| **Breezy HR** | `GET https://{slug}.breezy.hr/` | Verified public board server-renders jobs under `/p/{job-id}` with title in a heading and location in `li.location`; listing omits description, posted date, and salary |
 
 If a live response differs from this table, **trust the live response**, fix the adapter, and list the differences in your Phase 1 report.
 

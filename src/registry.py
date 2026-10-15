@@ -15,6 +15,8 @@ VALID_ATS = {
     "workday",
     "jsonld",
     "recruitee",
+    "bamboohr",
+    "breezy",
 }
 VALID_TIERS = {1, 2, 3}
 
@@ -33,7 +35,7 @@ def load_companies(
     Rules:
     - Header: name,ats,slug,tier (optional 'extra' column allowed from Phase 8 onward).
     - Lines starting with '#' or blank lines are ignored.
-    - ats must be one of: greenhouse, lever, ashby, smartrecruiters, workable, workday, jsonld, recruitee.
+    - ats must be one of: greenhouse, lever, ashby, smartrecruiters, workable, workday, jsonld, recruitee, bamboohr, breezy.
     - tier must be one of: 1, 2, 3.
     - Duplicate (ats, slug) pairs keep the first and log a warning.
     """
