@@ -19,6 +19,7 @@ RE_FRESHER_KW = re.compile(
     r"\b(freshers?|new grads?|recent graduates?|entry[- ]level|campus hire|graduate trainee)\b",
     re.IGNORECASE,
 )
+RE_INTERN = re.compile(r"\b(intern|interns|internship|internships)\b", re.IGNORECASE)
 RE_RANGE = re.compile(
     r"(\d+(?:\.\d+)?)\s*(?:-|–|—|to)\s*(\d+(?:\.\d+)?)\s*\+?\s*(?:years?|yrs?)",
     re.IGNORECASE,
@@ -35,8 +36,14 @@ RE_AT_LEAST = re.compile(
     r"(?:minimum|min\.?|at least)\s*(?:of\s*)?(\d+(?:\.\d+)?)\s*(?:years?|yrs?)",
     re.IGNORECASE,
 )
+RE_OR_MORE = re.compile(
+    r"(\d+(?:\.\d+)?)\s*(?:years?|yrs?)\s+or\s+more",
+    re.IGNORECASE,
+)
 RE_PLAIN = re.compile(
-    r"(\d+(?:\.\d+)?)\s*(?:years?|yrs?)\s*(?:of\s*)?(?:relevant\s*|professional\s*|work\s*|industry\s*)*experience",
+    r"(\d+(?:\.\d+)?)\s*(?:years?|yrs?)['’]?\s*(?:of\s*)?"
+    r"(?:relevant\s*|professional\s*|hands-on\s*|prior\s*|work\s*|industry\s*)*"
+    r"(?:experience|exp\b)",
     re.IGNORECASE,
 )
 
@@ -48,7 +55,7 @@ RE_TRAILING_ROMAN = re.compile(r"\b(ii|iii|iv)\b$", re.IGNORECASE)
 # Indian cities / regions
 INDIAN_CITIES = [
     "bengaluru", "bangalore", "hyderabad", "pune", "chennai", "mumbai",
-    "navi mumbai", "delhi", "new delhi", "gurgaon", "gurugram", "noida",
+    "navi mumbai", "bombay", "delhi", "new delhi", "gurgaon", "gurugram", "noida",
     "greater noida", "kolkata", "ahmedabad", "kochi", "cochin", "coimbatore",
     "jaipur", "indore", "chandigarh", "mohali", "thiruvananthapuram",
     "trivandrum", "nagpur", "bhubaneswar", "vadodara", "surat", "lucknow",
@@ -76,7 +83,12 @@ RE_BATCH_POSTFIX = re.compile(
     re.IGNORECASE,
 )
 RE_BATCH_PREFIX = re.compile(
-    r"\b(?:batch(?:es)?|class|graduating\s*in|graduates?\s*of|passouts?\s*of|graduation\s*year|year\s*of\s*graduation|year\s*of\s*passing|yog|yop)\s*(?:of\s*|:\s*|\s*-\s*|is\s*)?(202\d|203\d)(?:\s*(?:-|–|/|to|,|and|or)\s*(202\d|203\d))?\b",
+    r"\b(?:batch(?:es)?|class|graduating\s*(?:in|between)|passing\s*out\s*in|graduates?\s*of|passouts?\s*of|graduation\s*year|year\s*of\s*graduation|year\s*of\s*passing|yog|yop)\s*(?:of\s*|:\s*|\s*-\s*|is\s*)?(202\d|203\d)(?:\s*(?:-|–|/|to|,|and|or)\s*(202\d|203\d))?\b",
+    re.IGNORECASE,
+)
+RE_BATCH_YEAR_LIST = re.compile(
+    r"\b((?:20[23]\d\s*(?:,|/|&|and|or)\s*)+20[23]\d)\s*"
+    r"(?:batch(?:es)?|passouts?|passing\s*out|graduat\w+)\b",
     re.IGNORECASE,
 )
 RE_BATCH_LIST = re.compile(
@@ -88,6 +100,9 @@ def parse_grad_years(title: str, description: str) -> set[int]:
     """Parse explicit graduation or batch years mentioned in title or description."""
     text = title + "\n" + (description or "")
     years: set[int] = set()
+
+    for match in RE_BATCH_YEAR_LIST.finditer(text):
+        years.update(int(year) for year in re.findall(r"\b20[23]\d\b", match.group(1)))
 
     for m in RE_BATCH_RANGE.finditer(text):
         y1, y2 = int(m.group(1)), int(m.group(2))
@@ -180,6 +195,9 @@ def parse_experience(title: str, description: str) -> tuple[float | None, float 
 
     Returns (min_exp, max_exp, exp_signal).
     """
+    if RE_INTERN.search(title):
+        return (0.0, None, "title_entry")
+
     text = (title + "\n" + (description or "")).lower()
 
     candidates: list[tuple[float, float | None, str]] = []
@@ -209,6 +227,15 @@ def parse_experience(title: str, description: str) -> tuple[float | None, float 
 
     # at_least -> min=group1
     for m in RE_AT_LEAST.finditer(text):
+        try:
+            mn = float(m.group(1))
+            if mn < 40:
+                candidates.append((mn, None, "at_least"))
+        except ValueError:
+            pass
+
+    # "N years or more" -> min=N
+    for m in RE_OR_MORE.finditer(text):
         try:
             mn = float(m.group(1))
             if mn < 40:
@@ -279,6 +306,22 @@ def parse_experience(title: str, description: str) -> tuple[float | None, float 
 
 
 def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
+    result = _evaluate(job, cfg)
+    result.grad_years = sorted(parse_grad_years(job.title, job.description))
+    if not result.matched or not cfg.target_grad_years:
+        return result
+
+    if result.grad_years:
+        if not set(result.grad_years) & set(cfg.target_grad_years):
+            result.matched = False
+            result.reject_reason = "grad_year_mismatch"
+    elif not cfg.allow_unspecified_grad_year:
+        result.matched = False
+        result.reject_reason = "grad_year_unknown"
+    return result
+
+
+def _evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
     """Evaluate a job against the filter configuration.
 
     Order of checks (stops at first rejection):
@@ -325,6 +368,19 @@ def evaluate(job: Job, cfg: FilterConfig) -> FilterResult:
         return FilterResult(
             matched=False,
             reject_reason="title_excluded",
+            country=country,
+            min_exp=min_exp,
+            max_exp=max_exp,
+            exp_signal=exp_signal,
+        )
+
+    if cfg.require_title_any and not any(
+        re.search(r"\b" + re.escape(token.lower()) + r"\b", title_l)
+        for token in cfg.require_title_any
+    ):
+        return FilterResult(
+            matched=False,
+            reject_reason="title_required_missing",
             country=country,
             min_exp=min_exp,
             max_exp=max_exp,

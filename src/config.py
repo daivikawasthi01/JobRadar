@@ -16,10 +16,14 @@ class FilterConfig:
         "associate software engineer",
         "associate engineer",
         "associate developer",
+        "engineering",
+        "swe",
         "software engineer",
+        "software",
         "software developer",
         "software development engineer",
         "sde",
+        "developer",
         "full stack",
         "fullstack",
         "full-stack",
@@ -72,6 +76,7 @@ class FilterConfig:
     include_remote_unspecified: bool = False
     target_grad_years: list[int] = field(default_factory=list)
     allow_unspecified_grad_year: bool = True
+    require_title_any: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -160,6 +165,7 @@ def load_config(path: str | Path = "config/config.yaml") -> Config:
         include_remote_unspecified=bool(filters_raw.get("include_remote_unspecified", def_filter.include_remote_unspecified)),
         target_grad_years=[int(y) for y in filters_raw.get("target_grad_years", def_filter.target_grad_years)],
         allow_unspecified_grad_year=bool(filters_raw.get("allow_unspecified_grad_year", def_filter.allow_unspecified_grad_year)),
+        require_title_any=filters_raw.get("require_title_any", def_filter.require_title_any),
     )
 
     def_poll = PollingConfig()

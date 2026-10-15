@@ -89,15 +89,15 @@ def test_email_command(args: argparse.Namespace) -> int:
         """
         CREATE TABLE dummy_jobs (
             job_id TEXT, company TEXT, title TEXT, location TEXT,
-            min_exp REAL, max_exp REAL, posted_at TEXT, url TEXT
+            min_exp REAL, max_exp REAL, posted_at TEXT, url TEXT, description TEXT
         )
         """
     )
     conn.execute(
         """
         INSERT INTO dummy_jobs VALUES
-        ('test:1', 'Acme Corp', 'Associate Software Engineer', 'Bengaluru, India', 0.0, 2.0, '2026-10-12T04:30:00Z', 'https://example.com/job/1'),
-        ('test:2', 'Beta Labs', 'Backend Engineer', 'Pune, India', 1.0, NULL, '2026-10-12T05:00:00Z', 'https://example.com/job/2')
+        ('test:1', 'Acme Corp', 'SDE Intern', 'Bengaluru, India', 0.0, NULL, '2026-10-12T04:30:00Z', 'https://example.com/job/1', 'Eligible for the 2027 batch.'),
+        ('test:2', 'Beta Labs', 'Backend Engineer Intern', 'Pune, India', 0.0, NULL, '2026-10-12T05:00:00Z', 'https://example.com/job/2', 'Graduation batch year not specified.')
         """
     )
     rows = conn.execute("SELECT * FROM dummy_jobs").fetchall()

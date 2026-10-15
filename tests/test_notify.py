@@ -3,20 +3,30 @@ import sqlite3
 from src.notify import build_email, format_exp, utc_to_ist_str
 
 
-def make_row(title: str, company: str, location: str, min_exp: float | None, max_exp: float | None, posted_at: str, url: str) -> sqlite3.Row:
+def make_row(
+    title: str,
+    company: str,
+    location: str,
+    min_exp: float | None,
+    max_exp: float | None,
+    posted_at: str,
+    url: str,
+    description: str = "",
+) -> sqlite3.Row:
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     cur.execute(
         """
         CREATE TABLE t (
-            title TEXT, company TEXT, location TEXT, min_exp REAL, max_exp REAL, posted_at TEXT, url TEXT
+            title TEXT, company TEXT, location TEXT, min_exp REAL, max_exp REAL,
+            posted_at TEXT, url TEXT, description TEXT
         )
         """
     )
     cur.execute(
-        "INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (title, company, location, min_exp, max_exp, posted_at, url),
+        "INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (title, company, location, min_exp, max_exp, posted_at, url, description),
     )
     row = cur.execute("SELECT * FROM t").fetchone()
     conn.close()
@@ -24,7 +34,10 @@ def make_row(title: str, company: str, location: str, min_exp: float | None, max
 
 
 def test_build_email_subject_and_table():
-    r1 = make_row("Associate SWE", "Google", "Bengaluru, India", 0.0, 2.0, "2026-10-12T04:30:00Z", "https://google.com/1")
+    r1 = make_row(
+        "Associate SWE", "Google", "Bengaluru, India", 0.0, 2.0,
+        "2026-10-12T04:30:00Z", "https://google.com/1", "Eligible for 2027 batch graduates.",
+    )
     r2 = make_row("Backend Engineer", "Microsoft", "Hyderabad, India", 1.0, None, "2026-10-12T05:00:00Z", "https://ms.com/2")
     r3 = make_row("Fullstack Developer", "Meta", "Pune, India", None, None, "2026-10-12T06:00:00Z", "https://meta.com/3")
 
@@ -37,6 +50,10 @@ def test_build_email_subject_and_table():
     assert "0-2" in html_body
     assert "1+" in html_body
     assert "?" in html_body
+    assert "2027" in text
+    assert "2027" in html_body
+    assert "Not specified" in text
+    assert "Not specified" in html_body
     assert "Apply" in html_body
 
 

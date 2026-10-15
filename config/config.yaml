@@ -3,10 +3,14 @@ filters:
     - associate software engineer
     - associate engineer
     - associate developer
+    - engineering
+    - swe
     - software engineer
+    - software
     - software developer
     - software development engineer
     - sde
+    - developer
     - full stack
     - fullstack
     - full-stack
@@ -68,6 +72,7 @@ filters:
   keep_unknown_experience: true
   target_grad_years: [2027]
   allow_unspecified_grad_year: true
+  require_title_any: [intern, internship]
   countries: [India]
   include_remote_unspecified: false
 

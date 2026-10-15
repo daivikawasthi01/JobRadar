@@ -61,6 +61,45 @@ def test_case_04(cfg):
     assert res.reject_reason == "experience_too_high"
 
 
+def test_experience_range_with_en_dash_and_plus(cfg):
+    job = make_test_job("Software Engineer", "Experience: 3 – 5 + Years", "Mumbai, India")
+    res = evaluate(job, cfg)
+    assert res.min_exp == 3.0
+    assert res.max_exp == 5.0
+    assert res.exp_signal == "range"
+    assert res.reject_reason == "experience_too_high"
+
+
+def test_minimum_relevant_professional_experience(cfg):
+    job = make_test_job(
+        "Software Engineer",
+        "- Minimum 4 years of relevant professional experience in a similar role.",
+        "Bengaluru, India",
+    )
+    res = evaluate(job, cfg)
+    assert res.min_exp == 4.0
+    assert res.max_exp is None
+    assert res.exp_signal == "at_least"
+    assert res.reject_reason == "experience_too_high"
+
+
+@pytest.mark.parametrize(
+    ("description", "expected_min", "expected_signal"),
+    [
+        ("3 yrs exp", 3.0, "plain"),
+        ("5 years' experience", 5.0, "plain"),
+        ("4 years or more", 4.0, "at_least"),
+        ("Minimum 4 years of relevant professional experience", 4.0, "at_least"),
+    ],
+)
+def test_experience_prose_variants(cfg, description, expected_min, expected_signal):
+    from src.filters import parse_experience
+
+    min_exp, _, signal = parse_experience("Software Engineer", description)
+    assert min_exp == expected_min
+    assert signal == expected_signal
+
+
 def test_case_05(cfg):
     """5: Backend Engineer | "2+ years of experience in Python" | Chennai, India -> matched; min 2"""
     job = make_test_job("Backend Engineer", "2+ years of experience in Python", "Chennai, India")
@@ -268,6 +307,30 @@ def test_grad_year_matching_target_2027():
     assert res5.matched is False
     assert res5.reject_reason == "grad_year_unknown"
 
+    job_list = make_test_job(
+        "Software Engineer",
+        "Eligibility: 2025 and 2026 batch passouts only.",
+        "Bengaluru, India",
+    )
+    res_list = evaluate(job_list, cfg_2027)
+    assert res_list.matched is False
+    assert res_list.reject_reason == "grad_year_mismatch"
+    assert res_list.grad_years == [2025, 2026]
+
+    job_passing_out = make_test_job(
+        "Software Engineer",
+        "Only candidates passing out in 2027 may apply.",
+        "Bengaluru, India",
+    )
+    assert evaluate(job_passing_out, cfg_2027).grad_years == [2027]
+
+    job_graduating_between = make_test_job(
+        "Software Engineer",
+        "Candidates graduating between 2026 and 2027 are eligible.",
+        "Bengaluru, India",
+    )
+    assert evaluate(job_graduating_between, cfg_2027).grad_years == [2026, 2027]
+
 
 def test_internship_matching_for_2027():
     # When intern is excluded from exclusion list (as in config/config.yaml)
@@ -295,10 +358,31 @@ def test_runtime_config_matches_user_criteria():
 
     assert cfg.filters.target_grad_years == [2027]
     assert cfg.filters.allow_unspecified_grad_year is True
+    assert cfg.filters.require_title_any == ["intern", "internship"]
     assert "intern" not in cfg.filters.roles_exclude_title
     assert "India" in cfg.filters.countries
 
-    # Test an internship job evaluated with runtime config
-    job = make_test_job("SDE Intern", "Looking for enthusiastic problem solvers.", "Hyderabad, India")
+    for title in ("Software Engineer", "SDE-1", "Associate Software Engineer"):
+        job = make_test_job(title, "2027 batch BTech students.", "Hyderabad, India")
+        res = evaluate(job, cfg.filters)
+        assert res.matched is False
+        assert res.reject_reason == "title_required_missing"
+
+    job = make_test_job(
+        "SDE Intern",
+        "Minimum 4 years of relevant professional experience. 2027 batch BTech students.",
+        "Hyderabad, India",
+    )
     res = evaluate(job, cfg.filters)
     assert res.matched is True
+    assert res.min_exp == 0.0
+    assert res.exp_signal == "title_entry"
+    assert res.grad_years == [2027]
+
+    job_unknown_year = make_test_job(
+        "Software Engineer Intern",
+        "Looking for enthusiastic problem solvers.",
+        "Hyderabad, India",
+    )
+    unknown_result = evaluate(job_unknown_year, cfg.filters)
+    assert unknown_result.matched is True

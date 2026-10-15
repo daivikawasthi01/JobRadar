@@ -227,10 +227,14 @@ filters:
     - associate software engineer
     - associate engineer
     - associate developer
+    - engineering
+    - swe
     - software engineer
+    - software
     - software developer
     - software development engineer
     - sde
+    - developer
     - full stack
     - fullstack
     - full-stack
@@ -262,7 +266,6 @@ filters:
     - head
     - architect
     - vp
-    - intern            # remove this line to include internships
   entry_level_title_tokens:
     - associate
     - junior
@@ -271,11 +274,15 @@ filters:
     - graduate
     - new grad
     - entry level
+    - intern
     - sde-1
     - sde 1
     - sde1
   max_min_experience: 2          # keep jobs whose minimum required years <= this
   keep_unknown_experience: true  # keep jobs with no experience info (flagged "unknown")
+  target_grad_years: [2027]
+  allow_unspecified_grad_year: true
+  require_title_any: [intern, internship]
   countries: [India]             # allowed countries; [] means allow all
   include_remote_unspecified: false  # location exactly "Remote" with no country
 
@@ -383,10 +390,12 @@ def detect_country(location: str) -> str | None
 
 1. `title_l = job.title.lower()`.
 2. **Excluded title:** if any token in `roles_exclude_title` matches as a whole word/phrase (regex `\b<token>\b`; for `sr` also match `sr.`) **or** title matches `\bsde[- ]?(2|3|4)\b` **or** `\b(engineer|developer)\s+(ii|iii|iv)\b` or `\b(ii|iii|iv)\b$` → reject `title_excluded`.
-3. **Role included:** at least one token from `roles_include` must appear as a whole word/phrase in `title_l`. If none → reject `role_not_included`.
-4. **Experience:** call `parse_experience`. If `min_exp is not None and min_exp > max_min_experience` → reject `experience_too_high`. If `min_exp is None` and `keep_unknown_experience` is false → reject `experience_unknown`.
-5. **Country:** `detect_country(job.location)`. If `countries` non-empty and the detected country not in it → reject `country_not_allowed`. Special case: if location lowercased stripped equals `"remote"` (no country) → allowed only if `include_remote_unspecified`. If location is empty or country is `None` and not remote-only → reject `country_unknown`.
-6. Otherwise `matched = True`.
+3. **Required title:** if `require_title_any` is non-empty and no token matches as a whole word/phrase in `title_l` → reject `title_required_missing`.
+4. **Role included:** at least one token from `roles_include` must appear as a whole word/phrase in `title_l`. If none → reject `role_not_included`.
+5. **Experience:** call `parse_experience`. Internship titles are treated as entry-level (`min_exp=0`, signal `title_entry`) before inspecting the description. Otherwise, if `min_exp is not None and min_exp > max_min_experience` → reject `experience_too_high`. If `min_exp is None` and `keep_unknown_experience` is false → reject `experience_unknown`.
+6. **Country:** `detect_country(job.location)`. If `countries` non-empty and the detected country not in it → reject `country_not_allowed`. Special case: if location lowercased stripped equals `"remote"` (no country) → allowed only if `include_remote_unspecified`. If location is empty or country is `None` and not remote-only → reject `country_unknown`.
+7. **Graduation year:** after the other checks pass, if `target_grad_years` is non-empty and detected years do not overlap the targets → reject `grad_year_mismatch`; if no years are detected and `allow_unspecified_grad_year` is false → reject `grad_year_unknown`.
+8. Otherwise `matched = True`.
 
 Even rejected jobs get their `country`, `min_exp`, `max_exp`, `exp_signal` saved, for debugging.
 
@@ -403,9 +412,11 @@ Collect all candidate minimums from these regexes (compile with `re.IGNORECASE`)
 | `up_to` | `(?:up\s*to\|upto\|less than)\s*(\d+(?:\.\d+)?)\s*(?:years?\|yrs?)` | min = 0, max = group1 |
 | `plus` | `(\d+(?:\.\d+)?)\s*\+\s*(?:years?\|yrs?)` | min = group1 |
 | `at_least` | `(?:minimum\|min\.?\|at least)\s*(?:of\s*)?(\d+(?:\.\d+)?)\s*(?:years?\|yrs?)` | min = group1 |
-| `plain` | `(\d+(?:\.\d+)?)\s*(?:years?\|yrs?)\s*(?:of\s*)?(?:relevant\s*\|professional\s*\|work\s*\|industry\s*)*experience` | min = group1 |
+| `at_least` | `(\d+(?:\.\d+)?)\s*(?:years?\|yrs?)\s+or\s+more` | min = group1 |
+| `plain` | `(\d+(?:\.\d+)?)\s*(?:years?\|yrs?)['’]?\s*(?:of\s*)?(?:relevant\s*\|professional\s*\|hands-on\s*\|prior\s*\|work\s*\|industry\s*)*(?:experience\|exp\b)` | min = group1 |
 
 Resolution rules:
+- If the title contains `intern`, `interns`, `internship`, or `internships` as a whole word, return `(0.0, None, "title_entry")` before parsing the description.
 - **`min_exp` = the SMALLEST minimum found** among all candidates. (Reason: descriptions often say "0-2 years; 5+ years AWS preferred". Falsely rejecting a real fresher role costs more than falsely keeping a senior one.)
 - `max_exp` = the smallest max found among `range`/`up_to` candidates, else `None`.
 - `exp_signal` = name of the regex that produced the smallest minimum (prefer `fresher_keyword` on ties).
@@ -553,7 +564,7 @@ def send_ntfy(topic: str, title: str, message: str) -> None   # simple POST to h
 - Env vars: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `ALERT_TO`. If any is missing → raise a clear `ConfigError` (do not print values).
 - `smtplib.SMTP_SSL("smtp.gmail.com", 465)`, `login`, `send_message`. Use `email.message.EmailMessage` with plain text + HTML alternative.
 - **Subject:** `[New Job] {N} new matches: {Company1}, {Company2}, {Company3}…` (max 3 company names, then `…`).
-- **HTML body:** a table with columns `Role | Company | Location | Exp | Posted | Apply` where Apply is a clickable link. Sort newest first. Show `Exp` as `0-2`, `2+`, or `?` (unknown). Show times in IST.
+- **HTML body:** a table with columns `Role | Company | Location | Exp | Batch year | Posted | Apply` where Apply is a clickable link. Show detected graduation years in `Batch year`, or `Not specified` if none were parsed. Sort newest first. Show `Exp` as `0-2`, `2+`, or `?` (unknown). Show times in IST.
 - Cap rows at `max_jobs_per_email`. Rows beyond the cap stay `alerted=0` and go out next cycle.
 - HTML-escape every field (job titles come from the internet).
 - `mark_alerted` is called **only after** `send_email` succeeds. On failure: log the error, leave `alerted=0`, continue (the next cycle retries).

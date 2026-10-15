@@ -10,6 +10,8 @@ import sqlite3
 import urllib.request
 import urllib.error
 from src.config import ConfigError
+from src.filters import parse_grad_years
+from src.store import decompress_description
 
 logger = logging.getLogger(__name__)
 
@@ -92,10 +94,11 @@ def build_email(rows: list[sqlite3.Row], now_utc: str) -> tuple[str, str, str]:
     ]
     for r in rows:
         exp_disp = format_exp(r["min_exp"], r["max_exp"])
+        batch_disp = format_batch_year(r)
         posted_disp = utc_to_ist_str(r["posted_at"]) or "Recently"
         text_lines.append(
             f"- {r['title']} at {r['company']} ({r['location'] or 'Location unspecified'}) "
-            f"[Exp: {exp_disp}, Posted: {posted_disp}]"
+            f"[Exp: {exp_disp}, Batch year: {batch_disp}, Posted: {posted_disp}]"
         )
         text_lines.append(f"  Apply: {r['url']}")
         text_lines.append("")
@@ -109,6 +112,7 @@ def build_email(rows: list[sqlite3.Row], now_utc: str) -> tuple[str, str, str]:
         comp_esc = html.escape(str(r["company"]))
         loc_esc = html.escape(str(r["location"] or "Unspecified"))
         exp_esc = html.escape(format_exp(r["min_exp"], r["max_exp"]))
+        batch_esc = html.escape(format_batch_year(r))
         posted_esc = html.escape(utc_to_ist_str(r["posted_at"]) or "Recently")
         url_esc = html.escape(str(r["url"]))
 
@@ -118,6 +122,7 @@ def build_email(rows: list[sqlite3.Row], now_utc: str) -> tuple[str, str, str]:
             f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{comp_esc}</td>"
             f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{loc_esc}</td>"
             f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: center;'>{exp_esc}</td>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: center;'>{batch_esc}</td>"
             f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0; white-space: nowrap;'>{posted_esc}</td>"
             f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: center;'>"
             f"<a href='{url_esc}' style='background-color: #2563eb; color: #ffffff; padding: 4px 10px; text-decoration: none; border-radius: 4px; font-weight: 500;' target='_blank'>Apply</a>"
@@ -143,6 +148,7 @@ def build_email(rows: list[sqlite3.Row], now_utc: str) -> tuple[str, str, str]:
           <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1;">Company</th>
           <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1;">Location</th>
           <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: center;">Exp</th>
+          <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: center;">Batch year</th>
           <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1;">Posted</th>
           <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: center;">Apply</th>
         </tr>
@@ -159,6 +165,17 @@ def build_email(rows: list[sqlite3.Row], now_utc: str) -> tuple[str, str, str]:
 </html>"""
 
     return (subject, text_body, html_body)
+
+
+def format_batch_year(row: sqlite3.Row) -> str:
+    """Show detected graduation years or explicitly mark them as unspecified."""
+    keys = row.keys()
+    title = str(row["title"]) if "title" in keys else ""
+    description = row["description"] if "description" in keys else ""
+    if isinstance(description, bytes):
+        description = decompress_description(description)
+    years = sorted(parse_grad_years(title, str(description or "")))
+    return ", ".join(str(year) for year in years) if years else "Not specified"
 
 
 def send_email(
