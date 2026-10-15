@@ -230,10 +230,20 @@ filters:
     - engineering
     - swe
     - software engineer
-    - software
     - software developer
     - software development engineer
     - sde
+    - machine learning intern
+    - data science intern
+    - security engineer
+    - ai/ml
+    - research engineer
+    - ai research
+    - ml research
+    - machine learning research
+    - deep learning research
+    - computer vision research
+    - genai research
     - developer
     - full stack
     - fullstack
@@ -282,7 +292,7 @@ filters:
   keep_unknown_experience: true  # keep jobs with no experience info (flagged "unknown")
   target_grad_years: [2027]
   allow_unspecified_grad_year: true
-  require_title_any: [intern, internship]
+  require_title_any: [intern, interns, internship, internships]
   countries: [India]             # allowed countries; [] means allow all
   include_remote_unspecified: false  # location exactly "Remote" with no country
 
@@ -426,7 +436,8 @@ Resolution rules:
 ### B8.4 `detect_country(location)`
 
 Lowercase the string. Return `"India"` if it contains the word `india` or any of: `bengaluru, bangalore, hyderabad, pune, chennai, mumbai, navi mumbai, delhi, new delhi, gurgaon, gurugram, noida, greater noida, kolkata, ahmedabad, kochi, cochin, coimbatore, jaipur, indore, chandigarh, mohali, thiruvananthapuram, trivandrum, nagpur, bhubaneswar, vadodara, surat, lucknow, mysuru, mysore`.
-Return `"United States"` if it contains `united states`, `usa`, `u.s.`, `, us`, or ends with `, us`, or contains a US state abbreviation pattern like `, ca` / `, ny` / `, tx` / `, wa` as a **whole token after a comma** (use a full list of 50 state abbreviations), or `san francisco`, `new york`, `seattle`, `austin`, `boston`, `chicago`.
+Return `"United States"` if it contains `united states`, `usa`, `u.s.`, `, us`, or ends with `, us`, or contains a US state abbreviation pattern like `, ca` / `, ny` / `, tx` / `, wa` as a **whole token after a comma** (use a full list of 50 state abbreviations), or `san francisco`, `new york`, `seattle`, `austin`, `boston`, `chicago`, `indianapolis`, or `indiana`.
+For the ambiguous `, in` suffix, prefer India's ISO code unless a recognizable US city, `Indiana`, or an explicit US marker identifies the location as US.
 Return `"United Kingdom"` for `united kingdom`, `uk`, `london`; `"Canada"` for `canada`, `toronto`, `vancouver`; `"Germany"`, `"Singapore"`, `"Australia"` similarly with the country name and one main city each.
 Otherwise `None`.
 (Only India is needed for default behaviour; others can be extended later.)
@@ -461,6 +472,9 @@ Default config. "Loc" is the location string. "Result" = `matched` / `reject_rea
 | 22 | Software Engineer | "0-2 years" | Remote - India | matched |
 | 23 | Software Engineer Intern | "" | Pune, India | rejected `title_excluded` (default config) |
 | 24 | Software Engineer | "Our company has 50 years of history." | Pune, India | matched; min None; signal `unknown` |
+| 25 | Software Procurement Intern | "" | Bengaluru, India | rejected `role_not_included` (runtime config) |
+| 26 | Software Engineer Intern | "" | Remote, IN | country detected as India |
+| 27 | Research Intern | "" | Bengaluru, India | rejected `role_not_included` (runtime config; only technical research titles are included) |
 
 If any case fails because the spec text is wrong or inconsistent, tell the human which case and why. Do not silently change a test.
 

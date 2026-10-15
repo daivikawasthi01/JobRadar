@@ -71,7 +71,10 @@ US_STATES = {
     "sd", "tn", "tx", "ut", "vt", "va", "wa", "wv", "wi", "wy", "dc"
 }
 
-US_CITIES = ["san francisco", "new york", "seattle", "austin", "boston", "chicago"]
+US_CITIES = [
+    "san francisco", "new york", "seattle", "austin", "boston", "chicago",
+    "indianapolis",
+]
 
 # Precompiled graduation year / batch regexes
 RE_BATCH_RANGE = re.compile(
@@ -152,7 +155,7 @@ def detect_country(location: str | None) -> str | None:
 
     # 2. United States check
     if (
-        re.search(r"\b(united states|usa|u\.s\.)\b", loc)
+        re.search(r"\b(united states|usa|u\.s\.|us|indiana)\b", loc)
         or re.search(r",\s*us\b", loc)
         or loc.endswith(", us")
         or any(re.search(r"\b" + re.escape(c) + r"\b", loc) for c in US_CITIES)
@@ -160,8 +163,10 @@ def detect_country(location: str | None) -> str | None:
         return "United States"
 
     # US state abbreviation as a whole token after comma: e.g. ", ca"
-    state_match = re.search(r",\s*([a-z]{2})\b", loc)
+    state_match = re.search(r",\s*([a-z]{2})(?![a-z-])\b", loc)
     if state_match and state_match.group(1) in US_STATES:
+        if state_match.group(1) == "in":
+            return "India"
         return "United States"
 
     # 3. United Kingdom

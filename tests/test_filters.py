@@ -1,7 +1,7 @@
-"""Tests for src/filters.py covering all 24 required test cases from BUILD_SPEC.md §B8.5."""
+"""Tests for src/filters.py covering spec cases and filter regressions."""
 import pytest
 from src.config import FilterConfig
-from src.filters import evaluate
+from src.filters import detect_country, evaluate
 from src.models import Job
 
 
@@ -358,15 +358,48 @@ def test_runtime_config_matches_user_criteria():
 
     assert cfg.filters.target_grad_years == [2027]
     assert cfg.filters.allow_unspecified_grad_year is True
-    assert cfg.filters.require_title_any == ["intern", "internship"]
+    assert cfg.filters.require_title_any == ["intern", "interns", "internship", "internships"]
     assert "intern" not in cfg.filters.roles_exclude_title
     assert "India" in cfg.filters.countries
+    assert "software" not in cfg.filters.roles_include
 
     for title in ("Software Engineer", "SDE-1", "Associate Software Engineer"):
         job = make_test_job(title, "2027 batch BTech students.", "Hyderabad, India")
         res = evaluate(job, cfg.filters)
         assert res.matched is False
         assert res.reject_reason == "title_required_missing"
+
+    procurement_job = make_test_job(
+        "Software Procurement Intern",
+        "",
+        "Bengaluru, India",
+    )
+    procurement_result = evaluate(procurement_job, cfg.filters)
+    assert procurement_result.matched is False
+    assert procurement_result.reject_reason == "role_not_included"
+
+    for title in (
+        "Machine Learning Intern",
+        "Data Science Intern",
+        "Security Engineer Intern",
+        "Intern - AI/ML",
+        "Software Engineering Internships",
+        "AI Research Intern",
+        "ML Research Intern",
+        "Machine Learning Research Intern",
+        "Deep Learning Research Intern",
+        "Computer Vision Research Intern",
+        "GenAI Research Scientist Intern",
+        "Research Engineer Intern",
+    ):
+        job = make_test_job(title, "", "Bengaluru, India")
+        assert evaluate(job, cfg.filters).matched is True
+
+    for title in ("Research Intern", "Research Scientist Intern", "Research Science Intern"):
+        job = make_test_job(title, "", "Bengaluru, India")
+        result = evaluate(job, cfg.filters)
+        assert result.matched is False
+        assert result.reject_reason == "role_not_included"
 
     job = make_test_job(
         "SDE Intern",
@@ -386,3 +419,12 @@ def test_runtime_config_matches_user_criteria():
     )
     unknown_result = evaluate(job_unknown_year, cfg.filters)
     assert unknown_result.matched is True
+
+
+def test_detect_country_disambiguates_india_iso_code():
+    assert detect_country("Remote, IN") == "India"
+    assert detect_country("Hyderabad, IN") == "India"
+    assert detect_country("Indianapolis, IN") == "United States"
+    assert detect_country("Remote, IN, US") == "United States"
+    assert detect_country("Remote, IN (US)") == "United States"
+    assert detect_country("Remote, in-office") is None

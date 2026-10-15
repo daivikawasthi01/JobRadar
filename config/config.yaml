@@ -6,7 +6,6 @@ filters:
     - engineering
     - swe
     - software engineer
-    - software
     - software developer
     - software development engineer
     - sde
@@ -24,6 +23,17 @@ filters:
     - ai engineer
     - ml engineer
     - machine learning engineer
+    - machine learning intern
+    - data science intern
+    - security engineer
+    - ai/ml
+    - research engineer
+    - ai research
+    - ml research
+    - machine learning research
+    - deep learning research
+    - computer vision research
+    - genai research
     - data engineer
     - python developer
     - graduate engineer trainee
@@ -72,7 +82,7 @@ filters:
   keep_unknown_experience: true
   target_grad_years: [2027]
   allow_unspecified_grad_year: true
-  require_title_any: [intern, internship]
+  require_title_any: [intern, interns, internship, internships]
   countries: [India]
   include_remote_unspecified: false
 
