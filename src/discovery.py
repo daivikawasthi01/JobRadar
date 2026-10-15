@@ -249,6 +249,10 @@ class DiscoveryManager:
 
         try:
             jobs = await adapter.fetch(session, dummy_comp, timeout_seconds=10.0, retries=1)
+            # SmartRecruiters returns 200 with empty list for nonexistent companies
+            if ats == "smartrecruiters" and len(jobs) == 0:
+                return None
+
             # Valid board reached
             job_count = len(jobs)
             india_jobs = [j for j in jobs if detect_country(j.location) == "India"]
@@ -524,10 +528,13 @@ async def run_discovery(args) -> int:
                 norm_name = c["norm_name"]
                 domain = c.get("domain")
 
+                if idx % 25 == 0 or idx == 1:
+                    print(f"[{idx}/{len(companies)}] Probing progress... (found {found_count} candidate boards so far)", flush=True)
+
                 slug_candidates = generate_slugs(norm_name)
                 found_for_company = False
 
-                for ats in ["greenhouse", "lever", "ashby"]:
+                for ats in ["greenhouse", "lever", "ashby", "smartrecruiters"]:
                     for slug in slug_candidates:
                         probe_res = await manager.probe_ats_slug(session, name, ats, slug)
                         if probe_res:
@@ -536,7 +543,8 @@ async def run_discovery(args) -> int:
                             manager.record_candidate(**probe_res, source="probe")
                             print(
                                 f"[{idx}/{len(companies)}] FOUND: {name} -> {ats}:{slug} "
-                                f"(jobs: {probe_res['job_count']}, India: {probe_res['india_job_count']})"
+                                f"(jobs: {probe_res['job_count']}, India: {probe_res['india_job_count']})",
+                                flush=True,
                             )
                             # Stop probing this ATS at first hit
                             break
@@ -546,7 +554,7 @@ async def run_discovery(args) -> int:
                     hit = await manager.check_careers_page(session, name, domain)
                     if hit:
                         found_count += 1
-                        print(f"[{idx}/{len(companies)}] FOUND via careers page: {name} ({domain})")
+                        print(f"[{idx}/{len(companies)}] FOUND via careers page: {name} ({domain})", flush=True)
 
     except (KeyboardInterrupt, asyncio.CancelledError):
         print("\nInterrupted by user. Saving discovery progress...")

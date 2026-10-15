@@ -5,3 +5,436 @@ Stripe,greenhouse,stripe,1
 Palantir,lever,palantir,2
 Ramp,ashby,ramp,2
 InMobi,greenhouse,inmobi,2
+Groww,greenhouse,groww,2
+CRED,lever,cred,2
+Paytm,lever,paytm,2
+Pine Labs,greenhouse,pine,3
+Zeta,lever,zeta,2
+Slice,greenhouse,slice,3
+Navi Technologies,ashby,navi,3
+Lendingkart,smartrecruiters,lendingkart,2
+Upstox,smartrecruiters,upstox,2
+Turtlemint,smartrecruiters,turtlemint,2
+Swiggy,smartrecruiters,swiggy,2
+Meesho,lever,meesho,2
+Porter,greenhouse,porter,3
+Porter,lever,porter,3
+NoBroker,smartrecruiters,nobroker,2
+Cars24,smartrecruiters,cars24,2
+Rebel Foods,smartrecruiters,rebelfoods,3
+Pocket FM,lever,pocketfm,2
+Glance,greenhouse,glance,2
+ixigo,smartrecruiters,ixigo,2
+Vogo,lever,vogo,3
+Bounce,ashby,bounce,3
+Bluestone,greenhouse,bluestone,3
+Bluestone,smartrecruiters,bluestone,3
+Eternal,lever,eternal,3
+Gramophone,smartrecruiters,gramophone,3
+Unacademy,smartrecruiters,unacademy,2
+Scaler,ashby,scaler,3
+Newton School,smartrecruiters,newtonschool,2
+Skillsoft,greenhouse,skillsoft,2
+Springboard,greenhouse,springboard,3
+Naukri,greenhouse,naukri,3
+Instahyre,smartrecruiters,instahyre,2
+Foundit,greenhouse,foundit,3
+Turing,greenhouse,turing,2
+Turing,ashby,turing,3
+Toptal,lever,toptal,3
+Freshworks,lever,freshworks,3
+Freshworks,smartrecruiters,freshworks,2
+Druva,greenhouse,druva,2
+Whatfix,smartrecruiters,whatfix,2
+Observe.AI,greenhouse,observeai,2
+Zenoti,greenhouse,zenoti,2
+Mindtickle,lever,mindtickle,2
+Mindtickle,smartrecruiters,mindtickle,2
+Atlan,ashby,atlan,2
+Hevo Data,lever,hevodata,2
+Contentstack,greenhouse,contentstack,2
+SpotDraft,ashby,spotdraft,2
+HighRadius,greenhouse,highradius,2
+Sigmoid,greenhouse,sigmoid,2
+Mobius,greenhouse,mobius,3
+Bureau,ashby,bureau,2
+Gamma,lever,gamma,3
+Gamma,ashby,gamma,3
+Rubrik,greenhouse,rubrik,2
+Veritas,smartrecruiters,veritasinc,3
+Commvault,greenhouse,commvault,2
+Pure Storage,greenhouse,purestorage,2
+Pure Storage,ashby,purestorage,3
+Zscaler,greenhouse,zscaler,2
+Tenable,greenhouse,tenableinc,3
+Anaplan,greenhouse,anaplan,2
+Coupa,lever,coupa,2
+Zuora,greenhouse,zuora,2
+Nucleus Software,greenhouse,nucleus,3
+Nucleus Software,ashby,nucleus,3
+TCS,greenhouse,tcs,3
+KPMG,lever,kpmg,3
+Thoughtworks,greenhouse,thoughtworks,2
+Endava,smartrecruiters,endava,2
+Sutherland,smartrecruiters,sutherland,2
+Media.net,smartrecruiters,medianet,3
+Tower Research Capital,greenhouse,towerresearchcapital,2
+Graviton Research Capital,greenhouse,gravitonresearchcapital,2
+Optiver,greenhouse,optiver,3
+Jane Street,greenhouse,janestreet,3
+WorldQuant,greenhouse,worldquant,2
+Squarepoint Capital,greenhouse,squarepointcapital,2
+HP,greenhouse,hp,3
+Uber,smartrecruiters,uber,3
+Airbnb,greenhouse,airbnb,2
+Twilio,greenhouse,twilio,2
+Okta,greenhouse,okta,2
+Snowflake,ashby,snowflake,2
+Databricks,greenhouse,databricks,2
+MongoDB,greenhouse,mongodb,2
+Confluent,ashby,confluent,3
+Elastic,greenhouse,elastic,2
+ServiceNow,smartrecruiters,servicenow,2
+Dropbox,greenhouse,dropbox,3
+Box,greenhouse,boxinc,3
+Epic Games,greenhouse,epicgames,3
+Roblox,greenhouse,roblox,2
+Discord,greenhouse,discord,3
+Reddit,greenhouse,reddit,3
+Reddit,ashby,reddit,3
+Pinterest,greenhouse,pinterest,3
+LinkedIn,lever,linkedin,2
+Spotify,lever,spotify,2
+TripAdvisor,greenhouse,tripadvisor,3
+Cloudflare,greenhouse,cloudflare,2
+Fastly,greenhouse,fastly,2
+Datadog,greenhouse,datadog,2
+New Relic,greenhouse,newrelic,2
+New Relic,smartrecruiters,newrelic,3
+PagerDuty,greenhouse,pagerduty,3
+GitLab,greenhouse,gitlab,2
+JetBrains,greenhouse,jetbrains,3
+JetBrains,lever,jetbrains,3
+Docker,ashby,docker,3
+Canonical,greenhouse,canonical,3
+Intercom,greenhouse,intercom,3
+Plivo,lever,plivo,3
+Bandwidth,greenhouse,bandwidth,3
+Five9,greenhouse,five9,2
+NICE,greenhouse,nice,2
+Western Digital,smartrecruiters,westerndigital,2
+Arista Networks,smartrecruiters,aristanetworks,2
+Extreme Networks,lever,extremenetworks,2
+Continental,smartrecruiters,continental,2
+OpenAI,ashby,openai,2
+Anthropic,greenhouse,anthropic,2
+Cohere,ashby,cohere,3
+Scale AI,greenhouse,scaleai,2
+Perplexity,ashby,perplexity,3
+Replit,ashby,replit,3
+Vercel,greenhouse,vercel,2
+Vercel,ashby,vercel,3
+Netlify,greenhouse,netlify,3
+Supabase,ashby,supabase,3
+Linear,ashby,linear,3
+Notion,ashby,notion,2
+Figma,greenhouse,figma,2
+Figma,ashby,figma,3
+Canva,smartrecruiters,canva,2
+Airtable,greenhouse,airtable,3
+Airtable,ashby,airtable,3
+Brex,greenhouse,brex,3
+Plaid,ashby,plaid,3
+Deel,ashby,deel,3
+Gusto,greenhouse,gusto,3
+Mercury,greenhouse,mercury,3
+Mercury,ashby,mercury,3
+Chime,greenhouse,chime,3
+Robinhood,greenhouse,robinhood,3
+Coinbase,greenhouse,coinbase,2
+Kraken,lever,kraken,3
+Gemini,greenhouse,gemini,3
+Circle,ashby,circle,3
+Ripple,greenhouse,ripple,3
+Alchemy,ashby,alchemy,3
+Consensys,greenhouse,consensys,3
+Consensys,ashby,consensys,3
+Instacart,greenhouse,instacart,3
+Lyft,greenhouse,lyft,3
+Mercari,greenhouse,mercari,3
+Wise,greenhouse,wise,3
+Wise,smartrecruiters,wise,2
+Adyen,greenhouse,adyen,2
+Airwallex,ashby,airwallex,2
+Palantir,smartrecruiters,palantir,3
+SpaceX,greenhouse,spacex,3
+Samsara,greenhouse,samsara,2
+Flexport,greenhouse,flexport,2
+Gong,smartrecruiters,gong,3
+Glean,smartrecruiters,glean,3
+Writer,ashby,writer,3
+Runway,ashby,runway,3
+Midjourney,ashby,midjourney,3
+Stability AI,greenhouse,stabilityai,3
+Together AI,greenhouse,togetherai,2
+Anyscale,lever,anyscale,3
+Anyscale,ashby,anyscale,2
+Pinecone,ashby,pinecone,3
+Weaviate,ashby,weaviate,3
+LangChain,ashby,langchain,3
+LlamaIndex,ashby,llamaindex,3
+Modal,ashby,modal,3
+Cerebras,ashby,cerebras,2
+Lambda,ashby,lambda,2
+CoreWeave,greenhouse,coreweave,3
+Crusoe,ashby,crusoe,3
+Vast.ai,ashby,vastai,3
+Render,ashby,render,3
+Railway,ashby,railway,3
+Neon,lever,neon,3
+Neon,ashby,neon,3
+PlanetScale,greenhouse,planetscale,3
+SingleStore,greenhouse,singlestore,2
+Redis,ashby,redis,2
+Couchbase,greenhouse,couchbaseinc,2
+Temporal,ashby,temporal,2
+Sentry,ashby,sentry,3
+PostHog,ashby,posthog,3
+Mixpanel,greenhouse,mixpanel,2
+Amplitude,ashby,amplitude,2
+FullStory,ashby,fullstory,3
+LaunchDarkly,greenhouse,launchdarkly,2
+LaunchDarkly,ashby,launchdarkly,3
+Honeycomb,greenhouse,honeycomb,3
+Cribl,greenhouse,cribl,3
+Sumo Logic,greenhouse,sumologic,2
+Snyk,ashby,snyk,3
+Wiz,greenhouse,wizinc,2
+Wiz,ashby,wiz,3
+Orca Security,greenhouse,orcasecurity,2
+Abnormal Security,greenhouse,abnormalsecurity,2
+Vanta,ashby,vanta,3
+Drata,ashby,drata,3
+Secureframe,lever,secureframe,3
+Secureframe,ashby,secureframe,3
+1Password,ashby,1password,3
+Bitwarden,greenhouse,bitwarden,2
+Tailscale,greenhouse,tailscale,3
+Cursor,ashby,cursor,2
+Cognition,ashby,cognition,2
+Zed,ashby,zed,3
+Warp,greenhouse,warp,3
+Warp,ashby,warp,3
+Raycast,ashby,raycast,3
+Loom,ashby,loom,3
+Miro,ashby,miro,3
+Mural,ashby,mural,3
+Asana,greenhouse,asana,3
+ClickUp,ashby,clickup,3
+Calendly,greenhouse,calendly,3
+Typeform,greenhouse,typeform,3
+Webflow,greenhouse,webflow,3
+Webflow,ashby,webflow,3
+Squarespace,greenhouse,squarespace,3
+Bubble,ashby,bubble,3
+Zapier,ashby,zapier,3
+Workato,greenhouse,workato,2
+Workato,smartrecruiters,workato,3
+Make,greenhouse,make,3
+n8n,ashby,n8n,3
+UiPath,ashby,uipath,2
+Celonis,greenhouse,celonis,2
+Appian,greenhouse,appian,2
+Boomi,ashby,boomi,3
+Fivetran,greenhouse,fivetran,2
+Airbyte,ashby,airbyte,3
+Hightouch,ashby,hightouch,3
+Prefect,ashby,prefect,3
+Astronomer,ashby,astronomer,2
+Starburst,greenhouse,starburst,2
+Dremio,greenhouse,dremio,3
+ClickHouse,ashby,clickhouse,2
+Materialize,ashby,materialize,3
+Imply,greenhouse,imply,3
+StarTree,greenhouse,startree,2
+Motherduck,ashby,motherduck,3
+Hex,ashby,hex,3
+Sigma Computing,greenhouse,sigmacomputing,3
+Metabase,lever,metabase,3
+Lightdash,ashby,lightdash,3
+Observable,lever,observablehq,3
+Labelbox,greenhouse,labelbox,3
+Labelbox,lever,labelbox,3
+Snorkel AI,greenhouse,snorkelai,3
+Surge AI,ashby,surge-ai,3
+Appen,lever,appen,2
+Appen,smartrecruiters,appen,3
+Toloka,greenhouse,toloka,3
+Invisible Technologies,greenhouse,invisible,3
+Andela,ashby,andela,3
+Coursera,greenhouse,coursera,2
+Udemy,greenhouse,udemy,3
+Udacity,greenhouse,udacity,3
+Nerdwallet,ashby,nerdwallet,3
+SoFi,greenhouse,sofi,3
+Affirm,greenhouse,affirm,3
+Block,greenhouse,block,3
+Toast,greenhouse,toast,2
+Lightspeed,ashby,lightspeed,3
+BigCommerce,smartrecruiters,bigcommerce,3
+Wayfair,smartrecruiters,wayfair,3
+Roku,greenhouse,roku,2
+Twitch,greenhouse,twitch,3
+Bumble,lever,bumbleinc,3
+Bumble,ashby,bumble,3
+Match Group,lever,matchgroup,3
+Carta,greenhouse,carta,3
+Pilot,greenhouse,pilothq,3
+Bill.com,greenhouse,billcom,3
+Expensify,ashby,expensify,3
+TripActions,greenhouse,tripactions,2
+TripActions,ashby,tripactions,3
+Hopper,ashby,hopper,3
+Kayak,greenhouse,kayak,3
+Kayak,ashby,kayak,3
+Trivago,greenhouse,trivago,3
+Agoda,greenhouse,agoda,2
+GetYourGuide,greenhouse,getyourguide,3
+Nuro,greenhouse,nuro,3
+Waymo,greenhouse,waymo,2
+Zoox,lever,zoox,3
+Wayve,ashby,wayve,3
+Ouster,ashby,ouster,3
+Skydio,ashby,skydio,3
+Wing,greenhouse,wing,3
+AB InBev,greenhouse,abinbev,3
+Accolite,smartrecruiters,accoliteinc,3
+Accordion,greenhouse,accordion,3
+Aha!,greenhouse,aha,3
+Aidash,greenhouse,aidashinc,2
+Allium,ashby,allium,3
+Appointy,lever,appointy,3
+ArmorCode,greenhouse,armorcode,2
+ASM Technology,greenhouse,asm,3
+Athena Education,lever,athena-education,2
+Atlys,ashby,atlys,2
+Auxia,lever,auxia,2
+Baya Systems,greenhouse,bayasystems,2
+BazaarVoice,lever,bazaarvoice,2
+Betsol,smartrecruiters,betsol,2
+BHFT,smartrecruiters,bhft,3
+Big Binary,smartrecruiters,bigbinary,2
+Bitgo,greenhouse,bitgo,2
+Brillio,smartrecruiters,brillioinc,3
+Captain Fresh,smartrecruiters,captainfresh,2
+Caterpillar,smartrecruiters,caterpillarinc,3
+Celigo,greenhouse,celigo,2
+Change ENgine,smartrecruiters,changeengine,3
+Cientra,smartrecruiters,cientra,3
+Clari,lever,clari,3
+Clarity,ashby,clarity,3
+CommerceIQ,greenhouse,commerceiq,2
+Corridor,ashby,corridor,3
+Dataiku,greenhouse,dataiku,3
+Dataiku,smartrecruiters,dataiku,3
+Descript,greenhouse,descript,3
+DevRev,greenhouse,devrev,2
+DocuSign,lever,docusign,3
+Doola,lever,doola,3
+Dunnhumby,greenhouse,dunnhumby,2
+ElevenLabs,ashby,elevenlabs,2
+EnterPret,greenhouse,enterpret,2
+Epifi,lever,epifi,3
+Ethos Life,greenhouse,ethoslife,2
+FamPay,lever,fampay,2
+Findem,lever,findem,2
+FLOCK,ashby,flock,3
+Forbes Technologies,greenhouse,forbes,3
+Forma.ai,greenhouse,formaaiinc,2
+Freecharge,smartrecruiters,freecharge,2
+Gainsight,ashby,gainsight,2
+Gainsight,smartrecruiters,gainsight,2
+Gap,smartrecruiters,gapinc,3
+GoDaddy,greenhouse,godaddy,2
+Harness,greenhouse,harnessinc,2
+Headout,ashby,headoutinc,3
+Highspot,lever,highspot,3
+IndiGo,greenhouse,indigo,3
+IndiGo,ashby,indigo,3
+Inflection AI,greenhouse,inflectionai,3
+Insight Software,smartrecruiters,insightinc,3
+Jump Trading,greenhouse,jumptrading,2
+Kaseya,greenhouse,kaseya,2
+Kimbal,greenhouse,kimbal,2
+LocalStack,ashby,localstack,3
+Lokal,smartrecruiters,lokal,2
+Matillion,lever,matillion,2
+Mercer Mettl,smartrecruiters,mercermettl,2
+Microchip Technology,smartrecruiters,microchip,3
+Motive,greenhouse,motive,3
+Mthree,greenhouse,mthree,2
+Neo4j,greenhouse,neo4j,2
+Netradyne Technology,greenhouse,netradyne,2
+Netradyne Technology,smartrecruiters,netradyne,2
+Netskope,greenhouse,netskope,2
+Netskope,smartrecruiters,netskope,2
+Nextiva,greenhouse,nextiva,2
+NielsenIQ,smartrecruiters,nielseniq,2
+OakNorth,ashby,oaknorth,2
+Otter.ai,greenhouse,otterai,3
+Payoneer,greenhouse,payoneer,2
+People.ai,lever,people-ai,3
+PMG,greenhouse,pmg,3
+PreGrad,smartrecruiters,pregrad,2
+ProcDNA,smartrecruiters,procdna,2
+Pronto,greenhouse,pronto,3
+PubMatic,greenhouse,pubmatic,2
+Quince,greenhouse,quince,2
+Recharge,ashby,recharge,3
+Refyne,smartrecruiters,refyne,2
+Renesas Electronics,smartrecruiters,renesaselectronics,2
+Roboflow,ashby,roboflow,3
+SabPaisa,smartrecruiters,sabpaisa,2
+Sagent,greenhouse,sagent,3
+Salesloft,greenhouse,salesloft,2
+Samsung Semiconductor,greenhouse,samsungsemiconductor,3
+Saviynt,lever,saviynt,2
+Scienaptic Systems,smartrecruiters,scienapticsystems,3
+Searce,greenhouse,searceinc,3
+Sembly,smartrecruiters,sembly,3
+Sgs,smartrecruiters,sgs,2
+Shipsy,smartrecruiters,shipsy,2
+Showpad,greenhouse,showpad,2
+Signoz,ashby,signoz,2
+Silicon Labs,greenhouse,silicon,3
+Smarsh,lever,smarsh,2
+Smartsheet,greenhouse,smartsheet,2
+Sticker Mule,ashby,stickermule,3
+Synthesia,ashby,synthesia,3
+Tekion,ashby,tekion,2
+Tennr,ashby,tennr,3
+Tesseract,greenhouse,tesseract,3
+TestGorilla,ashby,testgorilla,3
+TestGorilla,smartrecruiters,testgorilla,3
+The Strelema,smartrecruiters,thestrelema,2
+TIDE,greenhouse,tide,2
+TigerGraph,greenhouse,tigergraph,3
+Tracelink,greenhouse,tracelinkinc,2
+Upwork,greenhouse,upwork,3
+VizExperts,smartrecruiters,vizexperts,2
+Wabtec,smartrecruiters,wabtec,2
+Walmart,smartrecruiters,walmartinc,3
+WTW,smartrecruiters,wtw,3
+Xiaomi,smartrecruiters,xiaomi,3
+Yugabyte,greenhouse,yugabyte,2
+Z1 Tech,lever,z1tech,2
+ZEISS,lever,zeiss,3
+Zinnia,greenhouse,zinnia,2
+Dun & Bradstreet,smartrecruiters,dunbradstreetinc,3
+Experian,smartrecruiters,experian,2
+Springer Nature,smartrecruiters,springernature,2
+SAIL,ashby,sail,3
+Titan,ashby,titan,3
+Lightspeed,ashby,lightspeedhq,3
+Bumble,ashby,bumbleinc,3
+Descript,greenhouse,descriptinc,3
