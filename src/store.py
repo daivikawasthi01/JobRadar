@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 import logging
 from pathlib import Path
+import re
 import sqlite3
 from typing import Any
 import zlib
@@ -28,6 +29,8 @@ CREATE TABLE IF NOT EXISTS companies (
   consecutive_errors INTEGER NOT NULL DEFAULT 0,
   consecutive_404 INTEGER NOT NULL DEFAULT 0,
   empty_streak INTEGER NOT NULL DEFAULT 0,
+  priority_board INTEGER NOT NULL DEFAULT 0,
+  next_check TEXT,
   disabled INTEGER NOT NULL DEFAULT 0
 );
 
@@ -41,9 +44,10 @@ CREATE TABLE IF NOT EXISTS jobs (
   country TEXT,
   remote INTEGER,
   url TEXT NOT NULL,
-  description BLOB NOT NULL DEFAULT X'',
+  description TEXT NOT NULL DEFAULT '',
   posted_at TEXT,
   salary TEXT,
+  canonical_key TEXT,
   min_exp REAL,
   max_exp REAL,
   exp_signal TEXT,
@@ -67,16 +71,36 @@ CREATE TABLE IF NOT EXISTS meta (
 """
 
 
-def compress_description(description: str) -> bytes:
-    """Compress a plain-text job description for compact SQLite storage."""
-    return zlib.compress(description.encode("utf-8"))
-
-
 def decompress_description(description: bytes | str) -> str:
-    """Read compressed descriptions and legacy plain-text rows."""
+    """Read plain-text descriptions and legacy zlib-compressed rows."""
     if isinstance(description, str):
         return description
-    return zlib.decompress(description).decode("utf-8")
+    try:
+        return zlib.decompress(description).decode("utf-8")
+    except zlib.error:
+        return description.decode("utf-8")
+
+
+def canonical_job_key(company: str, title: str, location: str) -> str:
+    """Normalize company, title, and location for cross-source deduplication."""
+    normalized = []
+    for index, value in enumerate((company, title, location)):
+        part = " ".join(re.sub(r"[^a-z0-9]+", " ", value.casefold()).split())
+        if index == 0:
+            suffixes = {"inc", "incorporated", "llc", "ltd", "limited", "pvt", "private", "corp", "corporation", "co", "company"}
+            words = part.split()
+            while words and words[-1] in suffixes:
+                words.pop()
+            part = " ".join(words)
+        normalized.append(part)
+    return "|".join(normalized)
+
+
+def _parse_utc(value: str) -> datetime:
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 @dataclass
@@ -99,15 +123,54 @@ class Store:
     def _init_db(self) -> None:
         with self.conn:
             self.conn.executescript(SCHEMA_SQL)
-            legacy_rows = self.conn.execute(
-                "SELECT job_id, description FROM jobs WHERE typeof(description) = 'text'"
+            company_columns = {
+                row["name"] for row in self.conn.execute("PRAGMA table_info(companies)")
+            }
+            if "priority_board" not in company_columns:
+                self.conn.execute(
+                    "ALTER TABLE companies ADD COLUMN priority_board INTEGER NOT NULL DEFAULT 0"
+                )
+            if "next_check" not in company_columns:
+                self.conn.execute("ALTER TABLE companies ADD COLUMN next_check TEXT")
+
+            job_columns = {
+                row["name"] for row in self.conn.execute("PRAGMA table_info(jobs)")
+            }
+            if "canonical_key" not in job_columns:
+                self.conn.execute("ALTER TABLE jobs ADD COLUMN canonical_key TEXT")
+            self.conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_canonical ON jobs(canonical_key, status)"
+            )
+            legacy_jobs = self.conn.execute(
+                "SELECT job_id, company, title, location FROM jobs WHERE canonical_key IS NULL"
             ).fetchall()
-            for row in legacy_rows:
+            for row in legacy_jobs:
+                self.conn.execute(
+                    "UPDATE jobs SET canonical_key = ? WHERE job_id = ?",
+                    (
+                        canonical_job_key(row["company"], row["title"], row["location"]),
+                        row["job_id"],
+                    ),
+                )
+            self.conn.execute(
+                """
+                UPDATE companies
+                SET priority_board = 1
+                WHERE EXISTS (
+                    SELECT 1 FROM jobs
+                    WHERE jobs.company_key = companies.company_key AND jobs.matched = 1
+                )
+                """
+            )
+            compressed_rows = self.conn.execute(
+                "SELECT job_id, description FROM jobs WHERE typeof(description) = 'blob'"
+            ).fetchall()
+            for row in compressed_rows:
                 self.conn.execute(
                     "UPDATE jobs SET description = ? WHERE job_id = ?",
-                    (compress_description(row["description"]), row["job_id"]),
+                    (decompress_description(row["description"]), row["job_id"]),
                 )
-        if legacy_rows:
+        if compressed_rows:
             self.conn.execute("VACUUM")
 
     def close(self) -> None:
@@ -138,39 +201,63 @@ class Store:
         only_tier: int | None = None,
         only_slug: str | None = None,
         limit: int | None = None,
+        tier1_min_interval_minutes: int = 15,
+        priority_min_interval_minutes: int = 15,
     ) -> list[Company]:
         """Find companies due for crawling based on their effective tier and intervals."""
-        now_dt = datetime.fromisoformat(now.replace("Z", "+00:00"))
+        now_dt = _parse_utc(now)
+        cutoff_t1 = (now_dt - timedelta(minutes=tier1_min_interval_minutes)).strftime("%Y-%m-%dT%H:%M:%SZ")
         cutoff_t2 = (now_dt - timedelta(minutes=tier2_min_interval_minutes)).strftime("%Y-%m-%dT%H:%M:%SZ")
         cutoff_t3 = (now_dt - timedelta(minutes=tier3_min_interval_minutes)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        cutoff_priority = (now_dt - timedelta(minutes=priority_min_interval_minutes)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         cur = self.conn.cursor()
         query = """
             SELECT company_key, name, ats, slug, tier, auto_tier,
                    COALESCE(auto_tier, tier) AS effective_tier,
-                   last_crawled_at
+                   last_crawled_at, priority_board, next_check
             FROM companies
             WHERE disabled = 0
               AND (
-                COALESCE(auto_tier, tier) = 1
-                OR last_crawled_at IS NULL
-                OR (COALESCE(auto_tier, tier) = 2 AND last_crawled_at <= ?)
-                OR (COALESCE(auto_tier, tier) = 3 AND last_crawled_at <= ?)
+                (next_check IS NOT NULL AND next_check <= ?)
+                OR (
+                  next_check IS NULL AND (
+                    last_crawled_at IS NULL
+                    OR (priority_board = 1 AND last_crawled_at <= ?)
+                    OR (priority_board = 0 AND COALESCE(auto_tier, tier) = 1 AND last_crawled_at <= ?)
+                    OR (priority_board = 0 AND COALESCE(auto_tier, tier) = 2 AND last_crawled_at <= ?)
+                    OR (priority_board = 0 AND COALESCE(auto_tier, tier) = 3 AND last_crawled_at <= ?)
+                  )
+                )
               )
             ORDER BY
-              COALESCE(auto_tier, tier) ASC,
-              CASE WHEN last_crawled_at IS NULL THEN 1 ELSE 0 END ASC,
-              last_crawled_at ASC
+                priority_board DESC,
+                COALESCE(auto_tier, tier) ASC,
+                CASE WHEN last_crawled_at IS NULL THEN 1 ELSE 0 END ASC,
+                last_crawled_at ASC
         """
-        rows = cur.execute(query, (cutoff_t2, cutoff_t3)).fetchall()
+        rows = cur.execute(
+            query,
+            (now, cutoff_priority, cutoff_t1, cutoff_t2, cutoff_t3),
+        ).fetchall()
 
-        # If > 800 companies due, prioritize Tier 1 and Tier 2, defer the rest
+        # If > 800 companies are due, prioritize known matching boards and higher tiers.
         if len(rows) > 800:
-            tier1_2 = [r for r in rows if r["effective_tier"] in (1, 2)]
-            tier3 = [r for r in rows if r["effective_tier"] > 2]
+            priority_and_tier1_2 = [
+                r for r in rows
+                if r["priority_board"] == 1 or r["effective_tier"] in (1, 2)
+            ]
+            lower_priority = [
+                r for r in rows
+                if r["priority_board"] != 1 and r["effective_tier"] > 2
+            ]
             deferred_count = max(0, len(rows) - 800)
-            logger.info("More than 800 companies due (%d); deferring %d Tier 3 companies", len(rows), deferred_count)
-            rows = (tier1_2 + tier3)[:800]
+            logger.info(
+                "More than 800 companies due (%d); deferring %d lower-priority boards",
+                len(rows),
+                deferred_count,
+            )
+            rows = (priority_and_tier1_2 + lower_priority)[:800]
 
         filtered_companies: list[Company] = []
         for r in rows:
@@ -194,6 +281,10 @@ class Store:
         now: str,
         empty_streak_before_close: int = 3,
         close_after_missed_cycles: int = 2,
+        tier1_min_interval_minutes: int = 15,
+        tier2_min_interval_minutes: int = 60,
+        tier3_min_interval_minutes: int = 1440,
+        priority_min_interval_minutes: int = 15,
     ) -> CrawlDiff:
         """Apply crawl results in a single transaction per company."""
         diff = CrawlDiff()
@@ -225,18 +316,23 @@ class Store:
             for job, res in jobs_with_results:
                 remote_val = 1 if job.remote is True else (0 if job.remote is False else None)
                 matched_val = 1 if res.matched else 0
+                canonical_key = canonical_job_key(job.company, job.title, job.location)
+                duplicate_exists = cur.execute(
+                    "SELECT 1 FROM jobs WHERE canonical_key = ? AND ats != ? AND status = 'open' LIMIT 1",
+                    (canonical_key, job.ats),
+                ).fetchone() is not None
 
                 if job.job_id not in known:
                     # New job
-                    alerted_val = 1 if is_first_crawl else 0
+                    alerted_val = 1 if is_first_crawl or duplicate_exists else 0
                     cur.execute(
                         """
                         INSERT INTO jobs (
                             job_id, company_key, company, ats, title, location, country,
-                            remote, url, description, posted_at, salary, min_exp, max_exp,
+                            remote, url, description, posted_at, salary, canonical_key, min_exp, max_exp,
                             exp_signal, matched, reject_reason, first_seen, last_seen,
                             status, closed_at, miss_count, alerted
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', NULL, 0, ?)
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', NULL, 0, ?)
                         """,
                         (
                             job.job_id,
@@ -248,9 +344,10 @@ class Store:
                             res.country,
                             remote_val,
                             job.url,
-                            compress_description(job.description),
+                            job.description,
                             job.posted_at,
                             job.salary,
+                            canonical_key,
                             res.min_exp,
                             res.max_exp,
                             res.exp_signal,
@@ -262,7 +359,7 @@ class Store:
                         ),
                     )
                     diff.new.append(job.job_id)
-                    if res.matched and not is_first_crawl:
+                    if res.matched and not is_first_crawl and not duplicate_exists:
                         diff.new_matched.append(job.job_id)
                 else:
                     # Existing job update
@@ -273,7 +370,7 @@ class Store:
                             """
                             UPDATE jobs SET
                                 title = ?, location = ?, country = ?, remote = ?, url = ?,
-                                description = ?, posted_at = ?, salary = ?, min_exp = ?, max_exp = ?,
+                                description = ?, posted_at = ?, salary = ?, canonical_key = ?, min_exp = ?, max_exp = ?,
                                 exp_signal = ?, matched = ?, reject_reason = ?,
                                 last_seen = ?, miss_count = 0, status = 'open', closed_at = NULL
                             WHERE job_id = ?
@@ -284,9 +381,10 @@ class Store:
                                 res.country,
                                 remote_val,
                                 job.url,
-                                compress_description(job.description),
+                                job.description,
                                 job.posted_at,
                                 job.salary,
+                                canonical_key,
                                 res.min_exp,
                                 res.max_exp,
                                 res.exp_signal,
@@ -301,7 +399,7 @@ class Store:
                             """
                             UPDATE jobs SET
                                 title = ?, location = ?, country = ?, remote = ?, url = ?,
-                                description = ?, posted_at = ?, salary = ?, min_exp = ?, max_exp = ?,
+                                description = ?, posted_at = ?, salary = ?, canonical_key = ?, min_exp = ?, max_exp = ?,
                                 exp_signal = ?, matched = ?, reject_reason = ?,
                                 last_seen = ?, miss_count = 0
                             WHERE job_id = ?
@@ -312,9 +410,10 @@ class Store:
                                 res.country,
                                 remote_val,
                                 job.url,
-                                compress_description(job.description),
+                                job.description,
                                 job.posted_at,
                                 job.salary,
+                                canonical_key,
                                 res.min_exp,
                                 res.max_exp,
                                 res.exp_signal,
@@ -360,13 +459,32 @@ class Store:
                 UPDATE companies SET
                     first_crawled_at = COALESCE(first_crawled_at, ?),
                     last_crawled_at = ?,
+                    next_check = ?,
                     last_error = NULL,
                     consecutive_errors = 0,
                     consecutive_404 = 0,
+                    priority_board = CASE WHEN priority_board = 1 OR ? = 1 THEN 1 ELSE 0 END,
                     empty_streak = ?
                 WHERE company_key = ?
                 """,
-                (now, now, empty_streak, company.key),
+                (
+                    now,
+                    now,
+                    self._next_check(
+                        now,
+                        company.tier,
+                        bool(comp_row["priority_board"]) or any(
+                            res.matched for _, res in jobs_with_results
+                        ),
+                        tier1_min_interval_minutes,
+                        tier2_min_interval_minutes,
+                        tier3_min_interval_minutes,
+                        priority_min_interval_minutes,
+                    ),
+                    int(any(res.matched for _, res in jobs_with_results)),
+                    empty_streak,
+                    company.key,
+                ),
             )
 
             # Auto-tier rule:
@@ -385,12 +503,39 @@ class Store:
 
         return diff
 
+    @staticmethod
+    def _next_check(
+        now: str,
+        tier: int,
+        priority: bool,
+        tier1_minutes: int,
+        tier2_minutes: int,
+        tier3_minutes: int,
+        priority_minutes: int,
+    ) -> str:
+        interval = (
+            priority_minutes
+            if priority
+            else tier1_minutes
+            if tier == 1
+            else tier2_minutes
+            if tier == 2
+            else tier3_minutes
+        )
+        return (_parse_utc(now) + timedelta(minutes=interval)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+
     def record_error(
         self,
         company: Company,
         err: Exception,
         now: str,
         disable_after_consecutive_404: int = 5,
+        tier1_min_interval_minutes: int = 15,
+        tier2_min_interval_minutes: int = 60,
+        tier3_min_interval_minutes: int = 1440,
+        priority_min_interval_minutes: int = 15,
     ) -> None:
         """Record a crawl error for a company without touching its jobs."""
         err_msg = str(err)[:300]
@@ -427,16 +572,34 @@ class Store:
                     last_error = ?,
                     consecutive_errors = ?,
                     consecutive_404 = ?,
+                    next_check = ?,
                     disabled = CASE WHEN ? = 1 THEN 1 ELSE disabled END
                 WHERE company_key = ?
                 """,
-                (err_msg, consec_err, consec_404, disabled, company.key),
+                (
+                    err_msg,
+                    consec_err,
+                    consec_404,
+                    self._next_check(
+                        now,
+                        company.tier,
+                        bool(comp_row["priority_board"]) if comp_row else False,
+                        tier1_min_interval_minutes,
+                        tier2_min_interval_minutes,
+                        tier3_min_interval_minutes,
+                        priority_min_interval_minutes,
+                    ),
+                    disabled,
+                    company.key,
+                ),
             )
 
     def pending_alerts(self, limit: int = 100) -> list[sqlite3.Row]:
         """Fetch pending job alerts: matched=1, alerted=0, status='open' ordered newest first."""
+        if limit <= 0:
+            return []
         cur = self.conn.cursor()
-        return cur.execute(
+        rows = cur.execute(
             """
             SELECT * FROM jobs
             WHERE matched = 1 AND alerted = 0 AND status = 'open'
@@ -445,6 +608,20 @@ class Store:
             """,
             (limit,),
         ).fetchall()
+        selected: list[sqlite3.Row] = []
+        seen_sources: dict[str, set[str]] = {}
+        for row in rows:
+            key = row["canonical_key"] or canonical_job_key(
+                row["company"], row["title"], row["location"]
+            )
+            sources = seen_sources.setdefault(key, set())
+            if any(source != row["ats"] for source in sources):
+                continue
+            sources.add(row["ats"])
+            selected.append(row)
+            if len(selected) >= limit:
+                break
+        return selected
 
     def mark_alerted(self, job_ids: list[str]) -> None:
         """Mark given jobs as alerted."""
@@ -452,12 +629,20 @@ class Store:
             return
         with self.conn:
             cur = self.conn.cursor()
-            cur.executemany(
-                "UPDATE jobs SET alerted = 1 WHERE job_id = ?",
-                [(jid,) for jid in job_ids],
-            )
+            for job_id in job_ids:
+                row = cur.execute(
+                    "SELECT canonical_key, ats FROM jobs WHERE job_id = ?", (job_id,)
+                ).fetchone()
+                if row:
+                    cur.execute(
+                        """
+                        UPDATE jobs SET alerted = 1
+                        WHERE canonical_key = ? AND (ats != ? OR job_id = ?)
+                        """,
+                        (row["canonical_key"], row["ats"], job_id),
+                    )
 
-    def prune_closed_jobs(self, now: str, retention_days: int = 60) -> int:
+    def prune_closed_jobs(self, now: str, retention_days: int = 45) -> int:
         """Prune long-closed jobs and compact the database."""
         if retention_days < 0:
             raise ValueError("retention_days must be non-negative")

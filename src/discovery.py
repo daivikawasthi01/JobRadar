@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 import urllib.robotparser
 import aiohttp
 from src.adapters import ADAPTERS
+from src.fetcher import NotFoundError
 from src.filters import detect_country
 from src.models import Company, Job
 
@@ -35,7 +36,16 @@ RE_ASHBY_LINK = re.compile(
     r"jobs\.ashbyhq\.com/([a-z0-9_.-]+)",
     re.IGNORECASE,
 )
+RE_WORKABLE_LINK = re.compile(
+    r"apply\.workable\.com/([a-z0-9_-]+)",
+    re.IGNORECASE,
+)
+RE_SMARTRECRUITERS_LINK = re.compile(
+    r"jobs\.smartrecruiters\.com/([a-z0-9_-]+)",
+    re.IGNORECASE,
+)
 RE_JSONLD_JOB = re.compile(r'["\']@type["\']\s*:\s*["\']JobPosting["\']', re.IGNORECASE)
+DISCOVERY_ATS = ("greenhouse", "lever", "ashby", "workable", "smartrecruiters")
 
 
 def normalize_company_name(name: str) -> str:
@@ -57,6 +67,13 @@ def normalize_company_name(name: str) -> str:
         words.pop()
 
     return " ".join(words).strip()
+
+
+def company_names_match(input_name: str, board_name: str) -> bool:
+    """Compare a seed name with an ATS-provided board name after normalization."""
+    input_normalized = normalize_company_name(input_name)
+    board_normalized = normalize_company_name(board_name)
+    return bool(input_normalized and board_normalized and input_normalized == board_normalized)
 
 
 def generate_slugs(norm_name: str) -> list[str]:
@@ -161,7 +178,7 @@ class DiscoveryManager:
                     self.progress = set(data) if isinstance(data, list) else set()
                 logger.info("Loaded %d already-probed keys from progress file", len(self.progress))
             except Exception as e:
-                logger.warning("Could not read progress file %s: %e", self.progress_path, e)
+                logger.warning("Could not read progress file %s: %s", self.progress_path, e)
 
     def save_progress(self) -> None:
         self.progress_path.parent.mkdir(parents=True, exist_ok=True)
@@ -240,7 +257,6 @@ class DiscoveryManager:
             return None
 
         await self.rate_limiter.wait()
-        self.record_probe(key)
 
         dummy_comp = Company(name=company_name, ats=ats, slug=slug, tier=2)
         adapter = ADAPTERS.get(ats)
@@ -248,30 +264,56 @@ class DiscoveryManager:
             return None
 
         try:
-            jobs = await adapter.fetch(session, dummy_comp, timeout_seconds=10.0, retries=1)
-            # SmartRecruiters returns 200 with empty list for nonexistent companies
-            if ats == "smartrecruiters" and len(jobs) == 0:
-                return None
-
+            board_name = ""
+            if ats == "smartrecruiters":
+                jobs, board_name = await adapter.fetch_with_board_name(
+                    session,
+                    dummy_comp,
+                    timeout_seconds=10.0,
+                    retries=1,
+                )
+            else:
+                jobs = await adapter.fetch(
+                    session,
+                    dummy_comp,
+                    timeout_seconds=10.0,
+                    retries=1,
+                )
             # Valid board reached
             job_count = len(jobs)
             india_jobs = [j for j in jobs if detect_country(j.location) == "India"]
             india_job_count = len(india_jobs)
             sample_url = jobs[0].url if jobs else ""
-            board_name = ""
 
             if ats == "greenhouse":
-                # Fetch board name
                 gh_info_url = f"https://boards-api.greenhouse.io/v1/boards/{slug}"
                 try:
+                    await self.rate_limiter.wait()
                     async with session.get(gh_info_url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
                         if resp.status == 200:
                             data = await resp.json(content_type=None)
                             if isinstance(data, dict):
-                                board_name = data.get("name", "")
-                except Exception:
-                    pass
+                                candidate_name = data.get("name")
+                                if isinstance(candidate_name, str):
+                                    board_name = candidate_name.strip()
+                except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as exc:
+                    logger.warning(
+                        "Could not verify Greenhouse board name for %s: %s",
+                        slug,
+                        exc,
+                    )
+            if board_name and not company_names_match(company_name, board_name):
+                logger.warning(
+                    "Slug collision: input %r resolved to %s board %r (%s); not adding it.",
+                    company_name,
+                    ats,
+                    board_name,
+                    slug,
+                )
+                self.record_probe(key)
+                return None
 
+            self.record_probe(key)
             return {
                 "name": company_name,
                 "ats": ats,
@@ -281,7 +323,17 @@ class DiscoveryManager:
                 "board_name": board_name,
                 "sample_url": sample_url,
             }
-        except Exception:
+        except NotFoundError:
+            self.record_probe(key)
+            return None
+        except Exception as exc:
+            logger.warning(
+                "Could not probe %s board %s for %s; it will be retried: %s",
+                ats,
+                slug,
+                company_name,
+                exc,
+            )
             return None
 
     async def check_careers_page(
@@ -345,13 +397,32 @@ class DiscoveryManager:
                             self.record_candidate(**probe_res)
                             return True
 
+                    m_workable = RE_WORKABLE_LINK.search(html_text)
+                    if m_workable:
+                        slug = m_workable.group(1).lower()
+                        probe_res = await self.probe_ats_slug(session, company_name, "workable", slug)
+                        if probe_res:
+                            probe_res["source"] = "careers_page"
+                            self.record_candidate(**probe_res)
+                            return True
+
+                    m_smartrecruiters = RE_SMARTRECRUITERS_LINK.search(html_text)
+                    if m_smartrecruiters:
+                        slug = m_smartrecruiters.group(1).lower()
+                        probe_res = await self.probe_ats_slug(
+                            session,
+                            company_name,
+                            "smartrecruiters",
+                            slug,
+                        )
+                        if probe_res:
+                            probe_res["source"] = "careers_page"
+                            self.record_candidate(**probe_res)
+                            return True
+
                     # 2. Unsupported ATS hits
                     if "myworkdayjobs.com" in html_text:
                         self.record_unsupported(company_name, "workday", url)
-                    elif "apply.workable.com" in html_text:
-                        self.record_unsupported(company_name, "workable", url)
-                    elif "smartrecruiters.com" in html_text:
-                        self.record_unsupported(company_name, "smartrecruiters", url)
                     elif "zohorecruit" in html_text:
                         self.record_unsupported(company_name, "zohorecruit", url)
 
@@ -376,10 +447,8 @@ def load_input_companies(input_paths: list[str] | None = None) -> list[dict]:
             if p.exists():
                 files_to_read.append(p)
     else:
-        # Defaults: config/seed_company_names.txt and config/inputs/
-        seed_p = Path("config/seed_company_names.txt")
-        if seed_p.exists():
-            files_to_read.append(seed_p)
+        # Defaults: every tracked seed list and config/inputs/.
+        files_to_read.extend(sorted(Path("config").glob("seed_company_names*.txt")))
 
         inputs_dir = Path("config/inputs")
         if inputs_dir.exists():
@@ -533,12 +602,14 @@ async def run_discovery(args) -> int:
 
                 slug_candidates = generate_slugs(norm_name)
                 found_for_company = False
+                found_ats: list[str] = []
 
-                for ats in ["greenhouse", "lever", "ashby", "smartrecruiters"]:
+                for ats in DISCOVERY_ATS:
                     for slug in slug_candidates:
                         probe_res = await manager.probe_ats_slug(session, name, ats, slug)
                         if probe_res:
                             found_for_company = True
+                            found_ats.append(ats)
                             found_count += 1
                             manager.record_candidate(**probe_res, source="probe")
                             print(
@@ -548,6 +619,13 @@ async def run_discovery(args) -> int:
                             )
                             # Stop probing this ATS at first hit
                             break
+
+                if len(found_ats) > 1:
+                    logger.info(
+                        "multi_ats: %s found on %s",
+                        name,
+                        ", ".join(found_ats),
+                    )
 
                 # Step 2: if no board found and domain present, scan careers page
                 if not found_for_company and domain:
@@ -561,5 +639,8 @@ async def run_discovery(args) -> int:
     finally:
         manager.save_progress()
 
-    print(f"Discovery completed. Found {found_count} new candidate boards.")
+    print(
+        f"Discovery completed. screened={len(manager.progress)} "
+        f"found={found_count} kept={found_count}."
+    )
     return 0

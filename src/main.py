@@ -10,7 +10,7 @@ import sys
 import time
 import aiohttp
 from src.adapters import ADAPTERS
-from src.config import ConfigError, load_config
+from src.config import Config, ConfigError, load_config
 from src.discovery import run_discovery
 from src.export import export_excel
 from src.filters import evaluate
@@ -28,6 +28,7 @@ from src.store import Store
 from src.textutil import now_utc_iso
 
 logger = logging.getLogger("jobradar")
+CRAWL_FETCH_BUDGET_SECONDS = 11 * 60
 
 
 def setup_logging() -> None:
@@ -129,8 +130,72 @@ def hn_discovery_command(args: argparse.Namespace) -> int:
     except HNDiscoveryError as exc:
         print(f"HN discovery error: {exc}", file=sys.stderr)
         return 1
-    print(f"Extracted {count} company name(s) to {output_path}. Run `python -m src.main discover` to probe ATS boards.")
+    print(f"Extracted {count} company name(s) to {output_path}. Run `python scripts/discover_ats.py` to probe ATS boards.")
     return 0
+
+
+async def fetch_due_companies(
+    session: aiohttp.ClientSession,
+    companies: list[Company],
+    cfg: Config,
+    budget_seconds: float,
+) -> tuple[dict[Company, list[Job] | Exception], list[Company]]:
+    """Fetch due boards concurrently and cancel unfinished work at the run deadline."""
+    semaphore = asyncio.Semaphore(cfg.polling.concurrency)
+    tasks: dict[asyncio.Task, Company] = {}
+    skipped: list[Company] = []
+    results: dict[Company, list[Job] | Exception] = {}
+
+    for company in companies:
+        adapter = ADAPTERS.get(company.ats)
+        if adapter is None:
+            logger.warning("No adapter found for ATS '%s' (company %s)", company.ats, company.key)
+            skipped.append(company)
+            continue
+        task = asyncio.create_task(
+            adapter.fetch(
+                session,
+                company,
+                timeout_seconds=cfg.polling.timeout_seconds,
+                retries=cfg.polling.retries,
+                semaphore=semaphore,
+            )
+        )
+        tasks[task] = company
+
+    pending = set(tasks)
+    deadline = asyncio.get_running_loop().time() + max(0.0, budget_seconds)
+    while pending:
+        remaining = deadline - asyncio.get_running_loop().time()
+        if remaining <= 0:
+            break
+        completed, pending = await asyncio.wait(
+            pending,
+            timeout=remaining,
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        if not completed:
+            break
+        for task in completed:
+            try:
+                results[tasks[task]] = task.result()
+            except Exception as exc:
+                results[tasks[task]] = exc
+
+    if pending:
+        timed_out = [tasks[task] for task in pending]
+        skipped.extend(timed_out)
+        for company in timed_out:
+            logger.warning(
+                "Crawl time budget reached; skipped board %s (%s), leaving it due for a later run.",
+                company.name,
+                company.key,
+            )
+        for task in pending:
+            task.cancel()
+        await asyncio.gather(*pending, return_exceptions=True)
+
+    return results, skipped
 
 
 async def run_crawl(args: argparse.Namespace) -> int:
@@ -179,30 +244,20 @@ async def run_crawl(args: argparse.Namespace) -> int:
         only_tier=args.tier,
         only_slug=args.company,
         limit=args.limit,
+        tier1_min_interval_minutes=cfg.polling.tier1_min_interval_minutes,
+        priority_min_interval_minutes=cfg.polling.priority_min_interval_minutes,
     )
 
-    # Step 3: Fetch due companies concurrently
-    semaphore = asyncio.Semaphore(cfg.polling.concurrency)
+    # Step 3: Fetch due boards concurrently, stopping before the workflow deadline.
     headers = {"User-Agent": cfg.polling.user_agent}
-
+    skipped_companies: list[Company] = []
     async with aiohttp.ClientSession(headers=headers) as session:
-        tasks = []
-        for comp in due:
-            adapter = ADAPTERS.get(comp.ats)
-            if not adapter:
-                logger.warning("No adapter found for ATS '%s' (company %s)", comp.ats, comp.key)
-                continue
-            tasks.append(
-                adapter.fetch(
-                    session,
-                    comp,
-                    timeout_seconds=cfg.polling.timeout_seconds,
-                    retries=cfg.polling.retries,
-                    semaphore=semaphore,
-                )
-            )
-
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        fetch_results, skipped_companies = await fetch_due_companies(
+            session,
+            due,
+            cfg,
+            budget_seconds=CRAWL_FETCH_BUDGET_SECONDS - (time.perf_counter() - t0),
+        )
 
     # Step 4: Process crawl results and update store
     ok_count = 0
@@ -212,7 +267,10 @@ async def run_crawl(args: argparse.Namespace) -> int:
     total_new_matched = 0
     total_closed = 0
 
-    for comp, res in zip(due, results):
+    for comp in due:
+        if comp not in fetch_results:
+            continue
+        res = fetch_results[comp]
         if isinstance(res, Exception):
             logger.warning("Crawl failed for %s (%s): %s", comp.name, comp.key, res)
             store.record_error(
@@ -220,6 +278,10 @@ async def run_crawl(args: argparse.Namespace) -> int:
                 res,
                 now,
                 disable_after_consecutive_404=cfg.limits.disable_after_consecutive_404,
+                tier1_min_interval_minutes=cfg.polling.tier1_min_interval_minutes,
+                tier2_min_interval_minutes=cfg.polling.tier2_min_interval_minutes,
+                tier3_min_interval_minutes=cfg.polling.tier3_min_interval_minutes,
+                priority_min_interval_minutes=cfg.polling.priority_min_interval_minutes,
             )
             error_count += 1
         else:
@@ -237,6 +299,10 @@ async def run_crawl(args: argparse.Namespace) -> int:
                 now,
                 empty_streak_before_close=cfg.limits.empty_streak_before_close,
                 close_after_missed_cycles=cfg.limits.close_after_missed_cycles,
+                tier1_min_interval_minutes=cfg.polling.tier1_min_interval_minutes,
+                tier2_min_interval_minutes=cfg.polling.tier2_min_interval_minutes,
+                tier3_min_interval_minutes=cfg.polling.tier3_min_interval_minutes,
+                priority_min_interval_minutes=cfg.polling.priority_min_interval_minutes,
             )
 
             total_new += len(diff.new)
@@ -256,9 +322,9 @@ async def run_crawl(args: argparse.Namespace) -> int:
                         )
 
     if not args.dry_run:
-        pruned_jobs = store.prune_closed_jobs(now, retention_days=60)
+        pruned_jobs = store.prune_closed_jobs(now, retention_days=45)
         if pruned_jobs:
-            logger.info("Pruned %d jobs closed for more than 60 days.", pruned_jobs)
+            logger.info("Pruned %d jobs closed for more than 45 days.", pruned_jobs)
 
     # Step 5: Excel export
     if not args.dry_run:
@@ -317,7 +383,7 @@ async def run_crawl(args: argparse.Namespace) -> int:
 
     # Step 8: Print single summary line
     print(
-        f"run ok | companies={len(due)} ok={ok_count} errors={error_count} | "
+        f"run ok | companies={len(due)} ok={ok_count} errors={error_count} skipped={len(skipped_companies)} | "
         f"jobs_seen={jobs_seen} new={total_new} new_matched={total_new_matched} closed={total_closed} | "
         f"emails={emails_sent} | secs={elapsed}"
     )

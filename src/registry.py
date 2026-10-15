@@ -6,7 +6,16 @@ from src.models import Company
 
 logger = logging.getLogger(__name__)
 
-VALID_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "workday"}
+VALID_ATS = {
+    "greenhouse",
+    "lever",
+    "ashby",
+    "smartrecruiters",
+    "workable",
+    "workday",
+    "jsonld",
+    "recruitee",
+}
 VALID_TIERS = {1, 2, 3}
 
 
@@ -24,7 +33,7 @@ def load_companies(
     Rules:
     - Header: name,ats,slug,tier (optional 'extra' column allowed from Phase 8 onward).
     - Lines starting with '#' or blank lines are ignored.
-    - ats must be one of: greenhouse, lever, ashby, smartrecruiters, workable, workday.
+    - ats must be one of: greenhouse, lever, ashby, smartrecruiters, workable, workday, jsonld, recruitee.
     - tier must be one of: 1, 2, 3.
     - Duplicate (ats, slug) pairs keep the first and log a warning.
     """

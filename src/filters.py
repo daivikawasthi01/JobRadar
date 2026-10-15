@@ -61,6 +61,15 @@ INDIAN_CITIES = [
     "trivandrum", "nagpur", "bhubaneswar", "vadodara", "surat", "lucknow",
     "mysuru", "mysore",
 ]
+INDIAN_REGIONS = [
+    "karnataka",
+    "telangana",
+    "maharashtra",
+    "tamil nadu",
+    "haryana",
+    "uttar pradesh",
+    "delhi ncr",
+]
 
 # US State abbreviations (50 states + DC)
 US_STATES = {
@@ -149,8 +158,8 @@ def detect_country(location: str | None) -> str | None:
     # 1. India check
     if re.search(r"\bindia\b", loc):
         return "India"
-    for city in INDIAN_CITIES:
-        if re.search(r"\b" + re.escape(city) + r"\b", loc):
+    for place in (*INDIAN_CITIES, *INDIAN_REGIONS):
+        if re.search(r"\b" + re.escape(place) + r"\b", loc):
             return "India"
 
     # 2. United States check
@@ -166,6 +175,7 @@ def detect_country(location: str | None) -> str | None:
     state_match = re.search(r",\s*([a-z]{2})(?![a-z-])\b", loc)
     if state_match and state_match.group(1) in US_STATES:
         if state_match.group(1) == "in":
+            # The ISO country code is ambiguous; absent a US signal, prefer India.
             return "India"
         return "United States"
 

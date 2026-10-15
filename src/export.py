@@ -28,6 +28,16 @@ def export_excel(store: Store, path: str = "data/jobs.xlsx") -> None:
 
     # 1. Matches data
     matches_query = """
+        WITH open_sources AS (
+            SELECT canonical_key, ats,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY canonical_key
+                       ORDER BY MIN(first_seen), ats
+                   ) AS source_rank
+            FROM jobs
+            WHERE status = 'open'
+            GROUP BY canonical_key, ats
+        )
         SELECT
             title AS "Role",
             company AS "Company",
@@ -41,14 +51,25 @@ def export_excel(store: Store, path: str = "data/jobs.xlsx") -> None:
             salary AS "Salary",
             ats AS "Source",
             url AS "Link"
-        FROM jobs
-        WHERE matched = 1 AND status = 'open'
+        FROM jobs AS job
+        JOIN open_sources USING (canonical_key, ats)
+        WHERE matched = 1 AND status = 'open' AND source_rank = 1
         ORDER BY first_seen DESC
     """
     matches_rows = cur.execute(matches_query).fetchall()
 
     # 2. All Open data
     all_open_query = """
+        WITH open_sources AS (
+            SELECT canonical_key, ats,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY canonical_key
+                       ORDER BY MIN(first_seen), ats
+                   ) AS source_rank
+            FROM jobs
+            WHERE status = 'open'
+            GROUP BY canonical_key, ats
+        )
         SELECT
             title AS "Role",
             company AS "Company",
@@ -64,8 +85,9 @@ def export_excel(store: Store, path: str = "data/jobs.xlsx") -> None:
             url AS "Link",
             matched AS "Matched",
             reject_reason AS "Reject Reason"
-        FROM jobs
-        WHERE status = 'open'
+        FROM jobs AS job
+        JOIN open_sources USING (canonical_key, ats)
+        WHERE status = 'open' AND source_rank = 1
         ORDER BY first_seen DESC
     """
     all_open_rows = cur.execute(all_open_query).fetchall()

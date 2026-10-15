@@ -209,7 +209,7 @@ def test_7_five_consecutive_404_disables_company(store):
 
 
 def test_8_companies_due_tier1_tier2(store):
-    """8. companies_due: tier 1 always included; tier 2 excluded if crawled 10m ago, included if 60m ago or never."""
+    """8. Tier 1 is due every 15m; tier 2 every configured hourly interval."""
     c1 = Company(name="Tier1Comp", ats="greenhouse", slug="c1", tier=1)
     c2_never = Company(name="Tier2Never", ats="greenhouse", slug="c2_never", tier=2)
     c2_recent = Company(name="Tier2Recent", ats="greenhouse", slug="c2_recent", tier=2)
@@ -226,20 +226,28 @@ def test_8_companies_due_tier1_tier2(store):
     store.conn.execute("UPDATE companies SET last_crawled_at = '2026-10-12T11:00:00Z' WHERE slug = 'c2_old'")
 
     due = store.companies_due(
-        tier2_min_interval_minutes=55,
-        tier3_min_interval_minutes=235,
+        tier2_min_interval_minutes=60,
+        tier3_min_interval_minutes=1440,
         now=now,
     )
     due_slugs = {c.slug for c in due}
 
-    assert "c1" in due_slugs
+    assert "c1" not in due_slugs
     assert "c2_never" in due_slugs
     assert "c2_old" in due_slugs
     assert "c2_recent" not in due_slugs
 
+    tier1_due = store.companies_due(
+        tier2_min_interval_minutes=60,
+        tier3_min_interval_minutes=1440,
+        now=now,
+        tier1_min_interval_minutes=5,
+    )
+    assert "c1" in {company.slug for company in tier1_due}
+
 
 def test_9_companies_due_tier3(store):
-    """9. Tier 3: excluded if crawled 2 hours ago, included if crawled 5 hours ago or never."""
+    """9. Tier 3 is daily: excluded if crawled 2 hours ago, due after 24 hours or if never crawled."""
     c3_never = Company(name="T3Never", ats="ashby", slug="t3_never", tier=3)
     c3_recent = Company(name="T3Recent", ats="ashby", slug="t3_recent", tier=3)
     c3_old = Company(name="T3Old", ats="ashby", slug="t3_old", tier=3)
@@ -249,12 +257,12 @@ def test_9_companies_due_tier3(store):
     now = "2026-10-12T12:00:00Z"
     # c3_recent crawled 2 hours (120m) ago
     store.conn.execute("UPDATE companies SET last_crawled_at = '2026-10-12T10:00:00Z' WHERE slug = 't3_recent'")
-    # c3_old crawled 5 hours (300m) ago
-    store.conn.execute("UPDATE companies SET last_crawled_at = '2026-10-12T07:00:00Z' WHERE slug = 't3_old'")
+    # c3_old crawled 25 hours ago
+    store.conn.execute("UPDATE companies SET last_crawled_at = '2026-10-11T11:00:00Z' WHERE slug = 't3_old'")
 
     due = store.companies_due(
-        tier2_min_interval_minutes=55,
-        tier3_min_interval_minutes=235,
+        tier2_min_interval_minutes=60,
+        tier3_min_interval_minutes=1440,
         now=now,
     )
     due_slugs = {c.slug for c in due}
@@ -265,7 +273,7 @@ def test_9_companies_due_tier3(store):
 
 
 def test_10_tier3_auto_tier_promotion_and_reversion(store):
-    """10. Tier 3 with matched job gets auto_tier=2 and Tier 2 schedule; when job closes auto_tier returns to NULL."""
+    """10. A matched Tier 3 board becomes priority; auto_tier reverts when no matches remain open."""
     comp = Company(name="Tier3Dynamic", ats="ashby", slug="t3_dyn", tier=3)
     store.sync_companies([comp])
 
@@ -282,12 +290,12 @@ def test_10_tier3_auto_tier_promotion_and_reversion(store):
     row = store.conn.execute("SELECT auto_tier FROM companies WHERE slug = 't3_dyn'").fetchone()
     assert row["auto_tier"] == 2
 
-    # Now it is due on Tier 2 schedule (e.g. 60 min after crawl, even though tier 3 interval is 235m)
-    now_60m_later = "2026-10-12T13:00:00Z"
+    # The matched board is priority and next due 15 minutes after its successful crawl.
+    now_15m_later = "2026-10-12T12:15:00Z"
     due = store.companies_due(
-        tier2_min_interval_minutes=55,
-        tier3_min_interval_minutes=235,
-        now=now_60m_later,
+        tier2_min_interval_minutes=60,
+        tier3_min_interval_minutes=1440,
+        now=now_15m_later,
     )
     assert any(c.slug == "t3_dyn" for c in due)
 
@@ -315,11 +323,165 @@ def test_11_company_with_zero_jobs(store):
     assert comp_row["last_error"] is None
 
 
-def test_descriptions_are_compressed_and_readable(store):
+def test_next_check_schedule_and_matched_board_promotion(store):
+    tier1 = Company(name="Tier One", ats="greenhouse", slug="tier-one", tier=1)
+    tier2 = Company(name="Tier Two", ats="lever", slug="tier-two", tier=2)
+    tier3 = Company(name="Tier Three", ats="ashby", slug="tier-three", tier=3)
+    store.sync_companies([tier1, tier2, tier3])
+    now = "2026-10-15T12:00:00Z"
+
+    store.apply_crawl(tier1, [], now)
+    store.apply_crawl(tier2, [], now)
+    store.apply_crawl(tier3, [], now)
+    checks = {
+        row["company_key"]: row["next_check"]
+        for row in store.conn.execute(
+            "SELECT company_key, next_check FROM companies WHERE company_key IN (?, ?, ?)",
+            (tier1.key, tier2.key, tier3.key),
+        )
+    }
+    assert checks == {
+        tier1.key: "2026-10-15T12:15:00Z",
+        tier2.key: "2026-10-15T13:00:00Z",
+        tier3.key: "2026-10-16T12:00:00Z",
+    }
+
+    store.apply_crawl(
+        tier3,
+        [make_job(tier3, "matched", matched=True)],
+        "2026-10-15T12:01:00Z",
+    )
+    row = store.conn.execute(
+        "SELECT priority_board, next_check FROM companies WHERE company_key = ?",
+        (tier3.key,),
+    ).fetchone()
+    assert row["priority_board"] == 1
+    assert row["next_check"] == "2026-10-15T12:16:00Z"
+
+    due_15_minutes = store.companies_due(
+        tier2_min_interval_minutes=60,
+        tier3_min_interval_minutes=1440,
+        now="2026-10-15T12:16:00Z",
+    )
+    assert tier3.slug in {company.slug for company in due_15_minutes}
+
+
+def test_record_error_sets_next_check_without_closing_jobs(store):
+    company = Company(name="Tier Two", ats="lever", slug="tier-two-error", tier=2)
+    store.sync_companies([company])
+    store.record_error(
+        company,
+        FetchError("temporary failure"),
+        "2026-10-15T12:00:00Z",
+    )
+    row = store.conn.execute(
+        "SELECT next_check FROM companies WHERE company_key = ?",
+        (company.key,),
+    ).fetchone()
+    assert row["next_check"] == "2026-10-15T13:00:00Z"
+
+    store.conn.execute(
+        "UPDATE companies SET priority_board = 1 WHERE company_key = ?",
+        (company.key,),
+    )
+    store.record_error(
+        company,
+        FetchError("temporary failure"),
+        "2026-10-15T13:00:00Z",
+    )
+    row = store.conn.execute(
+        "SELECT next_check FROM companies WHERE company_key = ?",
+        (company.key,),
+    ).fetchone()
+    assert row["next_check"] == "2026-10-15T13:15:00Z"
+
+
+def test_cross_source_duplicate_alerts_are_deduplicated_but_rows_are_kept(store):
+    greenhouse = Company(name="Example Inc.", ats="greenhouse", slug="example", tier=1)
+    lever = Company(name="Example", ats="lever", slug="example", tier=1)
+    store.sync_companies([greenhouse, lever])
+
+    seed, seed_result = make_job(greenhouse, "seed", matched=False)
+    store.apply_crawl(
+        greenhouse,
+        [(seed, seed_result)],
+        "2026-10-15T00:00:00Z",
+    )
+    original, _ = make_job(greenhouse, "job-1", matched=True)
+    store.apply_crawl(
+        greenhouse,
+        [
+            (seed, seed_result),
+            (
+                original,
+                FilterResult(True, country="India", min_exp=0, exp_signal="title_entry"),
+            ),
+        ],
+        "2026-10-15T00:15:00Z",
+    )
+    duplicate = Job(
+        job_id="lever:example:job-2",
+        company_key=lever.key,
+        company=lever.name,
+        ats=lever.ats,
+        title="Software Engineer, Intern",
+        location="Bengaluru India",
+        url="https://example.com/other-source",
+        description="",
+        posted_at=None,
+        salary=None,
+        remote=None,
+    )
+    diff = store.apply_crawl(
+        lever,
+        [(duplicate, FilterResult(True, country="India", min_exp=0, exp_signal="title_entry"))],
+        "2026-10-15T00:16:00Z",
+    )
+
+    assert diff.new == ["lever:example:job-2"]
+    assert diff.new_matched == []
+    assert store.conn.execute("SELECT COUNT(*) FROM jobs").fetchone()[0] == 3
+    pending = store.pending_alerts()
+    assert len(pending) == 1
+    assert pending[0]["job_id"] == original.job_id
+
+    store.mark_alerted([pending[0]["job_id"]])
+    assert store.pending_alerts() == []
+    assert store.conn.execute("SELECT COUNT(*) FROM jobs WHERE alerted = 1").fetchone()[0] == 3
+
+
+def test_same_source_jobs_are_not_deduplicated(store):
+    comp = Company(name="Acme", ats="greenhouse", slug="acme", tier=1)
+    store.sync_companies([comp])
+    seed, _ = make_job(comp, "seed", matched=False)
+    store.apply_crawl(comp, [(seed, FilterResult(False))], "2026-10-15T00:00:00Z")
+
+    first, _ = make_job(comp, "first", matched=True)
+    second, _ = make_job(comp, "second", matched=True)
+    second.title = "software engineer"
+    second.location = "Bengaluru India"
+    first_result = FilterResult(True, country="India", min_exp=0, exp_signal="title_entry")
+    second_result = FilterResult(True, country="India", min_exp=0, exp_signal="title_entry")
+    store.apply_crawl(
+        comp,
+        [(seed, FilterResult(False)), (first, first_result), (second, second_result)],
+        "2026-10-15T00:15:00Z",
+    )
+    assert len(store.pending_alerts()) == 2
+
+
+def test_descriptions_are_stored_as_plain_text(store):
+    description_column = next(
+        column
+        for column in store.conn.execute("PRAGMA table_info(jobs)")
+        if column["name"] == "description"
+    )
+    assert description_column["type"].upper() == "TEXT"
+
     comp = Company(name="Acme", ats="greenhouse", slug="acme", tier=1)
     store.sync_companies([comp])
     description = "A fresher job description. " * 100
-    job, result = make_job(comp, "compressed")
+    job, result = make_job(comp, "plain-text")
     job.description = description
 
     store.apply_crawl(comp, [(job, result)], "2026-10-12T00:00:00Z")
@@ -328,24 +490,26 @@ def test_descriptions_are_compressed_and_readable(store):
         "SELECT description, typeof(description) AS storage_type FROM jobs WHERE job_id = ?",
         (job.job_id,),
     ).fetchone()
-    assert row["storage_type"] == "blob"
-    assert len(row["description"]) < len(description.encode("utf-8"))
-    assert decompress_description(row["description"]) == description
+    assert row["storage_type"] == "text"
+    assert row["description"] == description
 
 
-def test_existing_plain_text_descriptions_are_migrated(tmp_path):
-    db_path = tmp_path / "legacy.db"
+def test_existing_zlib_descriptions_are_migrated_to_plain_text(tmp_path):
+    import zlib
+
+    db_path = tmp_path / "compressed.db"
     comp = Company(name="Acme", ats="greenhouse", slug="acme", tier=1)
-    legacy_description = "Legacy description " * 20
+    description = "Legacy compressed description " * 20
 
     first_store = Store(str(db_path))
     first_store.sync_companies([comp])
-    job, result = make_job(comp, "legacy")
+    job, result = make_job(comp, "compressed-legacy")
+    job.description = description
     first_store.apply_crawl(comp, [(job, result)], "2026-10-12T00:00:00Z")
     with first_store.conn:
         first_store.conn.execute(
             "UPDATE jobs SET description = ? WHERE job_id = ?",
-            (legacy_description, job.job_id),
+            (zlib.compress(description.encode("utf-8")), job.job_id),
         )
     first_store.close()
 
@@ -354,8 +518,9 @@ def test_existing_plain_text_descriptions_are_migrated(tmp_path):
         "SELECT description, typeof(description) AS storage_type FROM jobs WHERE job_id = ?",
         (job.job_id,),
     ).fetchone()
-    assert row["storage_type"] == "blob"
-    assert decompress_description(row["description"]) == legacy_description
+    assert row["storage_type"] == "text"
+    assert row["description"] == description
+    assert decompress_description(row["description"]) == description
     migrated_store.close()
 
 
@@ -368,12 +533,12 @@ def test_prune_closed_jobs_keeps_recent_and_open_jobs(store):
         "UPDATE jobs SET status = ?, closed_at = ? WHERE job_id = ?",
         [
             ("closed", "2026-08-14T00:00:00Z", jobs[0][0].job_id),
-            ("closed", "2026-08-16T00:00:00Z", jobs[1][0].job_id),
+            ("closed", "2026-09-01T00:00:00Z", jobs[1][0].job_id),
             ("open", "2026-08-01T00:00:00Z", jobs[2][0].job_id),
         ],
     )
 
-    deleted = store.prune_closed_jobs("2026-10-15T00:00:00Z", retention_days=60)
+    deleted = store.prune_closed_jobs("2026-10-15T00:00:00Z", retention_days=45)
 
     assert deleted == 1
     remaining = {
@@ -383,3 +548,19 @@ def test_prune_closed_jobs_keeps_recent_and_open_jobs(store):
     assert jobs[0][0].job_id not in remaining
     assert jobs[1][0].job_id in remaining
     assert jobs[2][0].job_id in remaining
+
+
+def test_prune_closed_jobs_defaults_to_45_day_retention(store):
+    comp = Company(name="Acme", ats="greenhouse", slug="acme", tier=1)
+    store.sync_companies([comp])
+    jobs = [make_job(comp, f"prune-default-{i}") for i in range(2)]
+    store.apply_crawl(comp, jobs, "2026-10-15T00:00:00Z")
+    store.conn.executemany(
+        "UPDATE jobs SET status = 'closed', closed_at = ? WHERE job_id = ?",
+        [
+            ("2026-08-30T00:00:00Z", jobs[0][0].job_id),
+            ("2026-09-01T00:00:00Z", jobs[1][0].job_id),
+        ],
+    )
+
+    assert store.prune_closed_jobs("2026-10-15T00:00:00Z") == 1

@@ -3,23 +3,39 @@ filters:
     - associate software engineer
     - associate engineer
     - associate developer
-    - engineering
     - swe
     - software engineer
+    - software engineering
     - software developer
     - software development engineer
     - sde
     - developer
+    - engineering intern
+    - ml
+    - machine learning
+    - data science
+    - data scientist
     - full stack
     - fullstack
     - full-stack
+    - backend
+    - back-end
+    - back end
     - backend engineer
     - back-end engineer
     - back end engineer
     - backend developer
+    - infrastructure engineer
+    - reliability engineer
+    - frontend
+    - front-end
+    - front end
     - frontend engineer
     - front-end engineer
     - frontend developer
+    - devops
+    - security
+    - qa automation
     - ai engineer
     - ml engineer
     - machine learning engineer
@@ -37,10 +53,6 @@ filters:
     - data engineer
     - python developer
     - graduate engineer trainee
-    - engineer trainee
-    - trainee
-    - new grad
-    - junior
     - software engineering intern
     - software engineer intern
     - software developer intern
@@ -64,7 +76,20 @@ filters:
     - head
     - architect
     - vp
-    # intern removed to include internships for final year student
+    - procurement
+    - sales
+    - marketing
+    - recruit
+    - recruiting
+    - talent
+    - hr
+    - finance
+    - legal
+    - operations
+    - founder
+    - growth
+    - business development
+    - customer success
   entry_level_title_tokens:
     - associate
     - junior
@@ -87,8 +112,10 @@ filters:
   include_remote_unspecified: false
 
 polling:
-  tier2_min_interval_minutes: 55
-  tier3_min_interval_minutes: 235
+  tier1_min_interval_minutes: 15
+  tier2_min_interval_minutes: 60
+  tier3_min_interval_minutes: 1440
+  priority_min_interval_minutes: 15
   concurrency: 30
   timeout_seconds: 15
   retries: 3

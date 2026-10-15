@@ -34,7 +34,7 @@ A crawler that watches thousands of company career pages, detects **newly posted
 
 You do **not** need 5,000 custom scrapers. Most companies use a handful of Applicant Tracking Systems (ATS). Many ATS platforms expose public job data as JSON. So:
 
-> ~7 ATS adapters + a big list of company slugs = thousands of career sites.
+> ATS adapters plus a generic JSON-LD parser and a reviewed list of company boards.
 
 Estimated coverage (approximate, unverified):
 
@@ -46,6 +46,7 @@ Estimated coverage (approximate, unverified):
 | SmartRecruiters | 3,000-4,000 | Public JSON API |
 | Workable | 5,000-10,000 | Public JSON API |
 | Workday | 2,000-4,000 | Per-tenant JSON endpoint (harder) |
+| JSON-LD career pages | Varies | Public HTML pages with Schema.org `JobPosting` data |
 | Zoho Recruit | Thousands (messy) | HTML / feeds |
 
 Realistic first target: **2,000-5,000 companies**, yielding roughly **100k-300k open postings**, of which a few thousand are fresher-relevant.
@@ -144,7 +145,8 @@ jobradar/
 │   │   ├── ashby.py
 │   │   ├── smartrecruiters.py
 │   │   ├── workable.py
-│   │   └── workday.py
+│   │   ├── workday.py
+│   │   └── jsonld.py
 │   ├── models.py               # Job dataclass
 │   ├── store.py                # SQLite read/write, diffing
 │   ├── filters.py              # role / experience / location logic
@@ -176,7 +178,7 @@ jobradar/
 | `remote` | Remote / hybrid / onsite if known |
 | `url` | Direct apply link |
 | `posted_at` | Posted/updated date from the ATS, if provided |
-| `description` | Full text (used for experience parsing; stored zlib-compressed in SQLite) |
+| `description` | Full plain text (used for experience parsing; the whole SQLite database is xz-compressed for transport) |
 | `min_exp` | Parsed minimum years of experience (nullable) |
 | `max_exp` | Parsed maximum years (nullable) |
 | `salary` | Salary/CTC text if present |
@@ -193,7 +195,7 @@ jobradar/
 - `applications`: job_id, applied_on, status, contact_name, contact_link, outreach_sent, follow_up_on, notes
 - `alerts_sent`: job_id, sent_at (prevents duplicate alerts)
 
-Descriptions remain available but are zlib-compressed in the database, with existing plain-text rows migrated automatically on startup. After a successful non-dry-run crawl, jobs closed for more than 60 days are pruned and SQLite is vacuumed. GitHub Actions stores the database as an `xz`-compressed asset on the `state` release, logs the compressed size, and warns above 70 MiB.
+Descriptions remain available as plain text in the database; previously zlib-compressed values are migrated on startup. After a successful non-dry-run crawl, jobs closed for more than 45 days are pruned and SQLite is vacuumed. GitHub Actions stores the database as an `xz`-compressed asset on the `state` release, logs the compressed size, and warns above 300 MiB.
 
 ---
 
@@ -209,11 +211,16 @@ Each adapter implements: `async fetch(company) -> list[Job]`. Endpoints below ar
 | SmartRecruiters | `GET https://api.smartrecruiters.com/v1/companies/{id}/postings` |
 | Workable | `POST https://apply.workable.com/api/v3/accounts/{slug}/jobs` |
 | Workday | `POST https://{tenant}.wd{N}.myworkdayjobs.com/wday/cxs/{tenant}/{site}/jobs` |
+| JSON-LD pages | `GET {extra}`; parse Schema.org `JobPosting` objects from the returned HTML |
+| Recruitee | `GET https://{slug}.recruitee.com/`; parse server-rendered `/o/{job-slug}` job cards |
+
+Recruitee's public board listing exposes job titles, locations, and workplace labels in HTML; descriptions, posting dates, and salary are not present in the verified listing response and remain empty.
 
 Adapter rules:
 - Never crash the whole cycle on one company's failure. Log it and continue.
 - Mark a company as "dead" after repeated 404s so you stop polling it.
 - Greenhouse/Lever may need a second call per job for the full description; fetch it only for **new** jobs to save time.
+- For JSON-LD pages, set `ats=jsonld` and put the absolute public careers/job page URL in the optional `extra` CSV column. Only add pages whose `robots.txt` permits access.
 
 ---
 
@@ -233,10 +240,10 @@ Use the latest “Who is hiring?” thread as a source of company names, not as 
 
 ```bash
 python -m src.main discover-hn
-python -m src.main discover
+python scripts/discover_ats.py
 ```
 
-The first command saves a dated names file under `config/inputs/`; the existing discovery command reads that directory and probes the names against supported ATS boards. Run it manually once a month. It does not parse HN posts into jobs, change the seed-name list, or run in the crawl workflow.
+The first command saves a dated names file under `config/inputs/`; `scripts/discover_ats.py` reads the seed-name lists and that directory, then probes Greenhouse, Lever, Ashby, Workable, and SmartRecruiters at up to two requests per second. Candidates are written to `config/companies_candidates.csv`; review slug/name matches before running with `--merge`. Run HN discovery monthly. It does not parse HN posts into jobs, change seed files, or run in the 15-minute crawl workflow.
 
 For a weekly Common Crawl sweep, `scripts/harvest_slugs.py` queries recent crawl indexes for Greenhouse, Lever, Ashby, Workable, and SmartRecruiters job URLs, screens each board once for India locations or internship titles, and proposes passing boards in a pull request. The workflow caches screened and rejected slugs in `config/commoncrawl_harvest.json`; review proposed company names and tiers before merging. It is separate from the 15-minute crawl.
 
@@ -250,8 +257,12 @@ Zepto,lever,zepto,1
 ```
 
 **Tiers** control polling frequency:
-- **Tier 1:** your top 200-300 dream companies, polled every 10-15 min
-- **Tier 2:** the rest, polled hourly
+- **Priority boards:** a company with a matching job in its history, polled every 15 min.
+- **Tier 1:** other top-priority companies, polled every 15 min.
+- **Tier 2:** other companies, polled hourly.
+- **Tier 3:** lower-priority companies, polled daily.
+
+The next check is stored per company in SQLite. A failed board is rescheduled without closing its jobs; a board still in progress when the 11-minute fetch budget expires is cancelled and reported as skipped, not failed. Cross-source duplicate jobs are retained in the database but only one copy is alerted and exported. Repeated jobs from the same ATS are not deduplicated.
 
 ---
 
@@ -360,7 +371,8 @@ There is no push from career sites, so real time = **frequent polling + alert on
 **Recommended path:** start with GitHub Actions every 15-30 min → move to a VM later (code stays identical).
 
 Polling strategy:
-- Tier 1 every 10-15 min, Tier 2 hourly
+- Matched (priority) boards and Tier 1 every 15 minutes, Tier 2 hourly, Tier 3 daily.
+- Stop fetching at the 11-minute budget; unfinished boards are cancelled and left due.
 - Use `ETag` / `If-Modified-Since` where supported
 - Concurrency cap (e.g. 20-50 at a time) plus small random delays
 
@@ -381,8 +393,10 @@ filters:
   include_remote: true
 
 polling:
-  tier1_minutes: 10
-  tier2_minutes: 60
+  tier1_min_interval_minutes: 15
+  tier2_min_interval_minutes: 60
+  tier3_min_interval_minutes: 1440
+  priority_min_interval_minutes: 15
   concurrency: 30
   timeout_seconds: 15
   retries: 3

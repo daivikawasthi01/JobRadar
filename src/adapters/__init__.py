@@ -6,6 +6,8 @@ from src.adapters.ashby import AshbyAdapter
 from src.adapters.smartrecruiters import SmartRecruitersAdapter
 from src.adapters.workable import WorkableAdapter
 from src.adapters.workday import WorkdayAdapter
+from src.adapters.jsonld import JsonLdAdapter
+from src.adapters.recruitee import RecruiteeAdapter
 
 ADAPTERS: dict[str, Adapter] = {
     "greenhouse": GreenhouseAdapter(),
@@ -14,6 +16,8 @@ ADAPTERS: dict[str, Adapter] = {
     "smartrecruiters": SmartRecruitersAdapter(),
     "workable": WorkableAdapter(),
     "workday": WorkdayAdapter(),
+    "jsonld": JsonLdAdapter(),
+    "recruitee": RecruiteeAdapter(),
 }
 
 __all__ = [
@@ -24,5 +28,7 @@ __all__ = [
     "SmartRecruitersAdapter",
     "WorkableAdapter",
     "WorkdayAdapter",
+    "JsonLdAdapter",
+    "RecruiteeAdapter",
     "ADAPTERS",
 ]

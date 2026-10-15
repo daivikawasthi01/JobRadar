@@ -21,6 +21,24 @@ class SmartRecruitersAdapter:
         retries: int = 3,
         semaphore: Any = None,
     ) -> list[Job]:
+        jobs, _ = await self.fetch_with_board_name(
+            session,
+            company,
+            timeout_seconds=timeout_seconds,
+            retries=retries,
+            semaphore=semaphore,
+        )
+        return jobs
+
+    async def fetch_with_board_name(
+        self,
+        session: aiohttp.ClientSession,
+        company: Company,
+        *,
+        timeout_seconds: float = 15.0,
+        retries: int = 3,
+        semaphore: Any = None,
+    ) -> tuple[list[Job], str]:
         url = f"https://api.smartrecruiters.com/v1/companies/{company.slug}/postings"
         raw = await get_json(
             session,
@@ -29,7 +47,25 @@ class SmartRecruitersAdapter:
             retries=retries,
             semaphore=semaphore,
         )
-        return self.parse(raw, company)
+        return self.parse(raw, company), self.extract_board_name(raw)
+
+    @staticmethod
+    def extract_board_name(raw: Any) -> str:
+        """Return a single ATS-provided company name when postings agree."""
+        if not isinstance(raw, dict) or not isinstance(raw.get("content"), list):
+            return ""
+        names: dict[str, str] = {}
+        for item in raw["content"]:
+            if (
+                not isinstance(item, dict)
+                or not isinstance(item.get("company"), dict)
+                or not isinstance(item["company"].get("name"), str)
+            ):
+                continue
+            name = item["company"]["name"].strip()
+            if name:
+                names.setdefault(name.casefold(), name)
+        return next(iter(names.values())) if len(names) == 1 else ""
 
     def parse(self, raw: Any, company: Company) -> list[Job]:
         """Pure parse function converting raw SmartRecruiters data to Job dataclasses."""

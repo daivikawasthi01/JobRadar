@@ -195,11 +195,11 @@ def test_case_15(cfg):
 
 
 def test_case_16(cfg):
-    """16: Business Development Associate | "" | Mumbai, India -> rejected role_not_included"""
+    """16: Business Development Associate | "" | Mumbai, India -> rejected title_excluded"""
     job = make_test_job("Business Development Associate", "", "Mumbai, India")
     res = evaluate(job, cfg)
     assert res.matched is False
-    assert res.reject_reason == "role_not_included"
+    assert res.reject_reason == "title_excluded"
 
 
 def test_case_17(cfg):
@@ -376,7 +376,7 @@ def test_runtime_config_matches_user_criteria():
     )
     procurement_result = evaluate(procurement_job, cfg.filters)
     assert procurement_result.matched is False
-    assert procurement_result.reject_reason == "role_not_included"
+    assert procurement_result.reject_reason == "title_excluded"
 
     for title in (
         "Machine Learning Intern",
@@ -424,7 +424,94 @@ def test_runtime_config_matches_user_criteria():
 def test_detect_country_disambiguates_india_iso_code():
     assert detect_country("Remote, IN") == "India"
     assert detect_country("Hyderabad, IN") == "India"
+    assert detect_country("Karnataka") == "India"
+    assert detect_country("Telangana") == "India"
+    assert detect_country("Maharashtra") == "India"
+    assert detect_country("Tamil Nadu") == "India"
+    assert detect_country("Haryana") == "India"
+    assert detect_country("Uttar Pradesh") == "India"
+    assert detect_country("Delhi NCR") == "India"
+    assert detect_country("Hybrid/Remote - India") == "India"
+    assert detect_country("Cambridge, IN") == "India"
     assert detect_country("Indianapolis, IN") == "United States"
+    assert detect_country("Cambridge, IN, US") == "United States"
     assert detect_country("Remote, IN, US") == "United States"
     assert detect_country("Remote, IN (US)") == "United States"
     assert detect_country("Remote, in-office") is None
+
+
+def test_runtime_config_has_specific_technical_internship_roles_and_exclusions():
+    from src.config import load_config
+
+    cfg = load_config("config/config.yaml").filters
+    assert "software" not in cfg.roles_include
+    assert "engineering" not in cfg.roles_include
+    assert {
+        "software engineer",
+        "software engineering",
+        "software developer",
+        "sde",
+        "swe",
+        "developer",
+        "engineering intern",
+        "ml",
+        "data science",
+        "backend",
+        "frontend",
+        "full stack",
+        "devops",
+        "security",
+        "qa automation",
+    }.issubset(set(cfg.roles_include))
+
+    excluded_titles = (
+        "Software Engineer Intern, Procurement",
+        "Software Engineer Intern, Sales",
+        "Software Engineer Intern, Marketing",
+        "Software Engineer Intern, Recruiting",
+        "Recruit Intern",
+        "Software Engineer Intern, Talent",
+        "Software Engineer Intern, HR",
+        "Software Engineer Intern, Finance",
+        "Software Engineer Intern, Legal",
+        "Software Engineer Intern, Operations",
+        "Software Engineer Intern and Founder",
+        "Software Engineer Intern, Growth",
+        "Software Engineer Intern, Business Development",
+        "Software Engineer Intern, Customer Success",
+    )
+    for title in excluded_titles:
+        result = evaluate(make_test_job(title, "2027 batch", "Bengaluru, India"), cfg)
+        assert result.matched is False, title
+        assert result.reject_reason == "title_excluded", title
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "Software Engineer Intern",
+        "Software Engineering Intern",
+        "Software Developer Intern",
+        "SDE Intern",
+        "SWE Intern",
+        "Developer Intern",
+        "Engineering Intern",
+        "ML Intern",
+        "Data Science Intern",
+        "Data Scientist Intern",
+        "Backend Intern",
+        "Infrastructure Engineer Intern",
+        "Reliability Engineer Intern",
+        "Frontend Intern",
+        "Full Stack Intern",
+        "DevOps Intern",
+        "Security Intern",
+        "QA Automation Intern",
+    ],
+)
+def test_technical_internship_role_terms_are_included(title):
+    from src.config import load_config
+
+    cfg = load_config("config/config.yaml").filters
+    result = evaluate(make_test_job(title, "2027 batch", "Bengaluru, India"), cfg)
+    assert result.matched is True

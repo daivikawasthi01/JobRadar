@@ -16,23 +16,39 @@ class FilterConfig:
         "associate software engineer",
         "associate engineer",
         "associate developer",
-        "engineering",
         "swe",
         "software engineer",
+        "software engineering",
         "software developer",
         "software development engineer",
         "sde",
         "developer",
+        "engineering intern",
+        "ml",
+        "machine learning",
+        "data science",
+        "data scientist",
         "full stack",
         "fullstack",
         "full-stack",
+        "backend",
+        "back-end",
+        "back end",
         "backend engineer",
         "back-end engineer",
         "back end engineer",
         "backend developer",
+        "infrastructure engineer",
+        "reliability engineer",
+        "frontend",
+        "front-end",
+        "front end",
         "frontend engineer",
         "front-end engineer",
         "frontend developer",
+        "devops",
+        "security",
+        "qa automation",
         "ai engineer",
         "ml engineer",
         "machine learning engineer",
@@ -50,10 +66,6 @@ class FilterConfig:
         "data engineer",
         "python developer",
         "graduate engineer trainee",
-        "engineer trainee",
-        "trainee",
-        "new grad",
-        "junior",
     ])
     roles_exclude_title: list[str] = field(default_factory=lambda: [
         "senior",
@@ -67,6 +79,20 @@ class FilterConfig:
         "architect",
         "vp",
         "intern",
+        "procurement",
+        "sales",
+        "marketing",
+        "recruit",
+        "recruiting",
+        "talent",
+        "hr",
+        "finance",
+        "legal",
+        "operations",
+        "founder",
+        "growth",
+        "business development",
+        "customer success",
     ])
     entry_level_title_tokens: list[str] = field(default_factory=lambda: [
         "associate",
@@ -91,8 +117,10 @@ class FilterConfig:
 
 @dataclass
 class PollingConfig:
-    tier2_min_interval_minutes: int = 55
-    tier3_min_interval_minutes: int = 235
+    tier1_min_interval_minutes: int = 15
+    tier2_min_interval_minutes: int = 60
+    tier3_min_interval_minutes: int = 1440
+    priority_min_interval_minutes: int = 15
     concurrency: int = 30
     timeout_seconds: int = 15
     retries: int = 3
@@ -180,8 +208,10 @@ def load_config(path: str | Path = "config/config.yaml") -> Config:
 
     def_poll = PollingConfig()
     poll_cfg = PollingConfig(
+        tier1_min_interval_minutes=int(polling_raw.get("tier1_min_interval_minutes", def_poll.tier1_min_interval_minutes)),
         tier2_min_interval_minutes=int(polling_raw.get("tier2_min_interval_minutes", def_poll.tier2_min_interval_minutes)),
         tier3_min_interval_minutes=int(polling_raw.get("tier3_min_interval_minutes", def_poll.tier3_min_interval_minutes)),
+        priority_min_interval_minutes=int(polling_raw.get("priority_min_interval_minutes", def_poll.priority_min_interval_minutes)),
         concurrency=int(polling_raw.get("concurrency", def_poll.concurrency)),
         timeout_seconds=int(polling_raw.get("timeout_seconds", def_poll.timeout_seconds)),
         retries=int(polling_raw.get("retries", def_poll.retries)),

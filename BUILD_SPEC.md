@@ -83,6 +83,7 @@ These are estimates, not guarantees. The slowest part is the company list, not t
 ├── scripts/
 │   ├── probe_endpoints.py      # live check, saves fixtures
 │   ├── smoke_live.py           # live end-to-end check on a few companies
+│   ├── discover_ats.py         # probe seeded company names against public ATS boards
 │   └── harvest_slugs.py        # weekly Common Crawl ATS board discovery
 ├── src/
 │   ├── __init__.py
@@ -102,7 +103,9 @@ These are estimates, not guarantees. The slowest part is the company list, not t
 │       ├── base.py
 │       ├── greenhouse.py
 │       ├── lever.py
-│       └── ashby.py
+│       ├── ashby.py
+│       ├── recruitee.py
+│       └── jsonld.py
 ├── tests/
 │   ├── fixtures/
 │   ├── test_textutil.py
@@ -123,8 +126,9 @@ These are estimates, not guarantees. The slowest part is the company list, not t
 
 CSV header (exact): `name,ats,slug,tier` (an optional 5th column `extra` is allowed only from Phase 8 onward; before that, reject files that have it)
 
-- `ats` ∈ `greenhouse | lever | ashby` (extend later only when a phase says so)
+- `ats` ∈ `greenhouse | lever | ashby | workable | smartrecruiters | workday | jsonld | recruitee`
 - `slug`: the identifier in the board URL
+- For `jsonld`, the optional `extra` column is required and contains the absolute public page URL.
 - `tier` ∈ `1 | 2 | 3` (this is the **base tier**, set by the human or by `discover`):
   - **Tier 1:** dream companies, polled every run (every ~15 min).
   - **Tier 2:** polled about hourly.
@@ -195,7 +199,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   country TEXT,
   remote INTEGER,
   url TEXT NOT NULL,
-  description BLOB NOT NULL DEFAULT X'',
+  description TEXT NOT NULL DEFAULT '',
   posted_at TEXT,
   salary TEXT,
   min_exp REAL,
@@ -220,7 +224,7 @@ CREATE TABLE IF NOT EXISTS meta (
 );
 ```
 
-Job descriptions remain available in the database as UTF-8 text compressed with zlib. `Store` compresses descriptions on insert/update and migrates existing plain-text rows when opening the database; callers that need the original text use `decompress_description`.
+Job descriptions remain available as plain UTF-8 text in SQLite. When opening a database from the older zlib-compressed format, `Store` migrates those description values to plain text. The whole database is compressed with xz for the release asset.
 
 ## B4. Config (`config/config.yaml`). Create with exactly these defaults
 
@@ -230,12 +234,42 @@ filters:
     - associate software engineer
     - associate engineer
     - associate developer
-    - engineering
     - swe
     - software engineer
+    - software engineering
     - software developer
     - software development engineer
     - sde
+    - developer
+    - engineering intern
+    - ml
+    - machine learning
+    - data science
+    - data scientist
+    - full stack
+    - fullstack
+    - full-stack
+    - backend
+    - back-end
+    - back end
+    - backend engineer
+    - back-end engineer
+    - back end engineer
+    - backend developer
+    - infrastructure engineer
+    - reliability engineer
+    - frontend
+    - front-end
+    - front end
+    - frontend engineer
+    - front-end engineer
+    - frontend developer
+    - devops
+    - security
+    - qa automation
+    - ai engineer
+    - ml engineer
+    - machine learning engineer
     - machine learning intern
     - data science intern
     - security engineer
@@ -247,27 +281,9 @@ filters:
     - deep learning research
     - computer vision research
     - genai research
-    - developer
-    - full stack
-    - fullstack
-    - full-stack
-    - backend engineer
-    - back-end engineer
-    - back end engineer
-    - backend developer
-    - frontend engineer
-    - front-end engineer
-    - frontend developer
-    - ai engineer
-    - ml engineer
-    - machine learning engineer
     - data engineer
     - python developer
     - graduate engineer trainee
-    - engineer trainee
-    - trainee
-    - new grad
-    - junior
   roles_exclude_title:
     - senior
     - sr
@@ -279,6 +295,20 @@ filters:
     - head
     - architect
     - vp
+    - procurement
+    - sales
+    - marketing
+    - recruit
+    - recruiting
+    - talent
+    - hr
+    - finance
+    - legal
+    - operations
+    - founder
+    - growth
+    - business development
+    - customer success
   entry_level_title_tokens:
     - associate
     - junior
@@ -300,8 +330,10 @@ filters:
   include_remote_unspecified: false  # location exactly "Remote" with no country
 
 polling:
-  tier2_min_interval_minutes: 55
-  tier3_min_interval_minutes: 235
+  tier1_min_interval_minutes: 15
+  tier2_min_interval_minutes: 60
+  tier3_min_interval_minutes: 1440
+  priority_min_interval_minutes: 15
   concurrency: 30
   timeout_seconds: 15
   retries: 3
@@ -375,6 +407,7 @@ Rules for every `parse`:
 | **Greenhouse** | `GET https://boards-api.greenhouse.io/v1/boards/{slug}/jobs?content=true` | `jobs[]`: `id`→native_id, `title`, `absolute_url`→url, `location.name`→location, `content` (HTML-escaped)→description, `first_published` if present else `updated_at`→posted_at |
 | **Lever** | `GET https://api.lever.co/v0/postings/{slug}?mode=json` | Response is a **list**: `id`→native_id, `text`→title, `hostedUrl`→url, `categories.location`→location, `descriptionPlain` (fallback `description` via `html_to_text`; also append text of `lists[]` if present)→description, `createdAt` (epoch ms)→posted_at, `workplaceType=="remote"`→remote, `salaryRange` (if present) → salary text like `"INR 800000-1200000 / year"` |
 | **Ashby** | `GET https://api.ashbyhq.com/posting-api/job-board/{slug}?includeCompensation=true` | `jobs[]`: `id`→native_id, `title`, `jobUrl`→url, `location`→location, `descriptionPlain` (fallback `descriptionHtml` via `html_to_text`)→description, `publishedAt`→posted_at, `isRemote`→remote, skip entries where `isListed` is `false`, compensation summary if present→salary |
+| **Recruitee** | `GET https://{slug}.recruitee.com/` | Verified public boards server-render job anchors at `/o/{job-slug}` with title and location/workplace metadata in HTML; listing pages may omit description, posted date, and salary |
 
 If a live response differs from this table, **trust the live response**, fix the adapter, and list the differences in your Phase 1 report.
 
@@ -438,7 +471,7 @@ Resolution rules:
 
 ### B8.4 `detect_country(location)`
 
-Lowercase the string. Return `"India"` if it contains the word `india` or any of: `bengaluru, bangalore, hyderabad, pune, chennai, mumbai, navi mumbai, delhi, new delhi, gurgaon, gurugram, noida, greater noida, kolkata, ahmedabad, kochi, cochin, coimbatore, jaipur, indore, chandigarh, mohali, thiruvananthapuram, trivandrum, nagpur, bhubaneswar, vadodara, surat, lucknow, mysuru, mysore`.
+Lowercase the string. Return `"India"` if it contains the word `india` or any of: `bengaluru, bangalore, hyderabad, pune, chennai, mumbai, navi mumbai, delhi, new delhi, gurgaon, gurugram, noida, greater noida, kolkata, ahmedabad, kochi, cochin, coimbatore, jaipur, indore, chandigarh, mohali, thiruvananthapuram, trivandrum, nagpur, bhubaneswar, vadodara, surat, lucknow, mysuru, mysore, karnataka, telangana, maharashtra, tamil nadu, haryana, uttar pradesh, delhi ncr`.
 Return `"United States"` if it contains `united states`, `usa`, `u.s.`, `, us`, or ends with `, us`, or contains a US state abbreviation pattern like `, ca` / `, ny` / `, tx` / `, wa` as a **whole token after a comma** (use a full list of 50 state abbreviations), or `san francisco`, `new york`, `seattle`, `austin`, `boston`, `chicago`, `indianapolis`, or `indiana`.
 For the ambiguous `, in` suffix, prefer India's ISO code unless a recognizable US city, `Indiana`, or an explicit US marker identifies the location as US.
 Return `"United Kingdom"` for `united kingdom`, `uk`, `london`; `"Canada"` for `canada`, `toronto`, `vancouver`; `"Germany"`, `"Singapore"`, `"Australia"` similarly with the country name and one main city each.
@@ -475,7 +508,7 @@ Default config. "Loc" is the location string. "Result" = `matched` / `reject_rea
 | 22 | Software Engineer | "0-2 years" | Remote - India | matched |
 | 23 | Software Engineer Intern | "" | Pune, India | rejected `title_excluded` (default config) |
 | 24 | Software Engineer | "Our company has 50 years of history." | Pune, India | matched; min None; signal `unknown` |
-| 25 | Software Procurement Intern | "" | Bengaluru, India | rejected `role_not_included` (runtime config) |
+| 25 | Software Procurement Intern | "" | Bengaluru, India | rejected `title_excluded` (runtime config; exclusions run before role inclusion) |
 | 26 | Software Engineer Intern | "" | Remote, IN | country detected as India |
 | 27 | Research Intern | "" | Bengaluru, India | rejected `role_not_included` (runtime config; only technical research titles are included) |
 
@@ -487,12 +520,12 @@ If any case fails because the spec text is wrong or inconsistent, tell the human
 class Store:
     def __init__(self, path: str)               # opens DB, runs DDL, row_factory=sqlite3.Row
     def sync_companies(self, companies: list[Company]) -> None   # upsert rows; do NOT reset crawl stats
-    def companies_due(self, tier2_min_interval_minutes: int, tier3_min_interval_minutes: int, now: str, only_tier: int | None, only_slug: str | None, limit: int | None) -> list[Company]
+    def companies_due(self, tier2_min_interval_minutes: int, tier3_min_interval_minutes: int, now: str, only_tier: int | None, only_slug: str | None, limit: int | None, tier1_min_interval_minutes: int = 15, priority_min_interval_minutes: int = 15) -> list[Company]
     def apply_crawl(self, company: Company, jobs_with_results: list[tuple[Job, FilterResult]], now: str) -> CrawlDiff
     def record_error(self, company: Company, err: Exception, now: str) -> None
     def pending_alerts(self, limit: int) -> list[sqlite3.Row]   # matched=1, alerted=0, status='open', ORDER BY first_seen DESC
     def mark_alerted(self, job_ids: list[str]) -> None
-    def prune_closed_jobs(self, now: str, retention_days: int = 60) -> int
+    def prune_closed_jobs(self, now: str, retention_days: int = 45) -> int
     def get_meta(self, key) -> str | None
     def set_meta(self, key, value) -> None
     def stats(self) -> dict
@@ -500,14 +533,17 @@ class Store:
 
 ### B9.1 `companies_due`
 Let `effective_tier = COALESCE(auto_tier, tier)`. Return companies where `disabled = 0` AND any of:
-- `effective_tier = 1`
 - `last_crawled_at IS NULL` (never crawled, any tier)
-- `effective_tier = 2` AND `last_crawled_at <= now - tier2_min_interval_minutes`
-- `effective_tier = 3` AND `last_crawled_at <= now - tier3_min_interval_minutes`
+- `priority_board = 1` AND the last crawl is at least `priority_min_interval_minutes` ago
+- `priority_board = 0 AND effective_tier = 1` AND the last crawl is at least `tier1_min_interval_minutes` ago
+- `priority_board = 0 AND effective_tier = 2` AND the last crawl is at least `tier2_min_interval_minutes` ago
+- `priority_board = 0 AND effective_tier = 3` AND the last crawl is at least `tier3_min_interval_minutes` ago
 
 Apply `only_tier` (matches `effective_tier`), `only_slug`, `limit` after that. Order never-crawled companies last so a big merge of new companies cannot starve Tier 1.
 
-If more than 800 companies are due in one run, crawl Tier 1 and 2 first and defer the rest to the next run (log how many were deferred). This keeps a run inside the 14-minute workflow timeout.
+`next_check` is persisted per company and is authoritative when set. After a successful crawl or failure, schedule the next check at the interval for the base tier, except that a priority board uses `priority_min_interval_minutes`. A company becomes a priority board after any matching job and remains priority. A never-crawled board is due immediately.
+
+If more than 800 companies are due in one run, crawl Tier 1 and 2 first and defer the rest to the next run (log how many were deferred). This keeps a run inside the 14-minute workflow timeout. Each run stops starting work after an 11-minute fetch budget, cancels unfinished requests, logs those boards as skipped, and does not mark skipped boards as failed or close their jobs. One adapter's exception is recorded for that board and does not stop other boards.
 
 ### B9.2 `apply_crawl`. **Exact algorithm** (single transaction per company)
 
@@ -522,9 +558,9 @@ seen_ids = {job.job_id for job in jobs}
 for (job, result) in jobs:
     if job_id NOT in known:
         INSERT row with first_seen=now, last_seen=now, status='open', miss_count=0,
-             alerted = 1 if is_first_crawl else 0,        # first crawl of a company is seeded silently
+             alerted = 1 if is_first_crawl or an open cross-ATS duplicate exists else 0,
              plus filter result columns
-        diff.new.append(job_id); if matched and not is_first_crawl: diff.new_matched.append(job_id)
+        diff.new.append(job_id); if matched and not is_first_crawl and no open cross-ATS duplicate: diff.new_matched.append(job_id)
     else:
         UPDATE description/title/location/url/salary/filter columns, last_seen=now, miss_count=0
         if status == 'closed': UPDATE status='open', closed_at=NULL   (reopened: do NOT alert)
@@ -543,11 +579,14 @@ else:
         if miss_count >= close_after_missed_cycles: status='closed', closed_at=now
 
 UPDATE companies SET first_crawled_at = COALESCE(first_crawled_at, now), last_crawled_at=now,
+       next_check=<scheduled UTC timestamp>, priority_board=<sticky if any matched job>,
        last_error=NULL, consecutive_errors=0, consecutive_404=0, empty_streak=<computed>
 ```
 `CrawlDiff` has: `new`, `new_matched`, `closed`, `reopened` (lists of job_ids).
 
-Descriptions are stored as zlib-compressed UTF-8 BLOBs without changing the `Job.description` input text. At the end of a successful non-dry-run cycle, delete jobs that have been closed for more than 60 days and run `VACUUM`. Keep all open jobs and recently closed jobs.
+Descriptions are stored as plain UTF-8 text. Each job also has a canonical key made from normalized company, title, and location. The key is for cross-source duplicate detection only; the original ATS job rows remain stored. A newly discovered duplicate from another ATS is marked alerted without sending a second alert. `pending_alerts` selects one pending representative across ATS sources, and marking it alerted marks its cross-source counterparts alerted. Multiple records from the same ATS are not deduplicated.
+
+At the end of a successful non-dry-run cycle, delete jobs that have been closed for more than 45 days and run `VACUUM`. Keep all open jobs and recently closed jobs.
 
 **Auto-tier rule (same transaction, after the job updates):** count this company's rows with `matched=1 AND status='open'`. If the company's base `tier = 3` and the count is `> 0` → `auto_tier = 2`. Otherwise → `auto_tier = NULL`. Companies with base tier 1 or 2 are never changed by this rule.
 
@@ -555,6 +594,7 @@ Descriptions are stored as zlib-compressed UTF-8 BLOBs without changing the `Job
 - Set `last_error` (truncate to 300 chars), `consecutive_errors += 1`.
 - If error is `NotFoundError`: `consecutive_404 += 1`; if `>= disable_after_consecutive_404` → `disabled = 1`.
 - Else: `consecutive_404 = 0`.
+- Set `next_check` using the applicable polling interval.
 - **Never** touch the company's jobs on error (no closing).
 
 ### B9.4 Required tests (`tests/test_store.py`, in-memory or temp-file DB)
@@ -565,10 +605,11 @@ Descriptions are stored as zlib-compressed UTF-8 BLOBs without changing the `Job
 5. A fetch returning 0 jobs when 5 were open does **not** close them on the 1st and 2nd occurrence, closes them on the 3rd.
 6. `record_error` never changes any job's status.
 7. Five consecutive `NotFoundError` → `disabled=1`.
-8. `companies_due`: tier 1 always included; tier 2 excluded if crawled 10 minutes ago, included if crawled 60 minutes ago or never.
-9. Tier 3: excluded if crawled 2 hours ago, included if crawled 5 hours ago or never.
-10. A Tier 3 company whose crawl returns a matched job gets `auto_tier = 2` and is then due on the Tier 2 schedule; when that job closes (and no other matched open job remains) `auto_tier` returns to `NULL`.
+8. `companies_due`: never-crawled boards are due; base Tier 1 is due every 15 minutes, Tier 2 every 60 minutes, Tier 3 daily, and priority boards every 15 minutes.
+9. `next_check` persists the next due time through success/failure, and skipped boards remain due.
+10. A Tier 3 company whose crawl returns a matched job gets `auto_tier = 2` and a sticky priority flag; when that job closes (and no other matched open job remains) `auto_tier` returns to `NULL`.
 11. A company with 0 jobs is stored and stays enabled (it is not an error and is never deleted).
+12. Cross-source duplicates share a canonical key; only one is alerted/exported across ATS sources while same-source records remain separate.
 
 ## B10. Notifications (`src/notify.py`)
 
@@ -615,7 +656,7 @@ python -m src.main stats               # print DB stats
 2. `due = store.companies_due(...)`.
 3. Create one `aiohttp` session; for each due company run `adapter.fetch` concurrently (`asyncio.gather` with `return_exceptions=True`, concurrency already bounded by the semaphore).
 4. For each result: on exception → `store.record_error`; on success → evaluate filters on every job, then `store.apply_crawl`.
-5. Unless `--dry-run`: prune jobs closed more than 60 days ago and run `VACUUM`.
+5. Unless `--dry-run`: prune jobs closed more than 45 days ago and run `VACUUM`.
 6. Unless `--dry-run`: `export_excel`.
 7. Unless `--no-email` or `--dry-run`: fetch `pending_alerts(max_jobs_per_email)`; if any → `send_email`; on success → `mark_alerted`; optionally `send_ntfy`.
 8. **Daily digest:** if `now_ist.hour >= daily_digest_hour_ist` and `meta.last_digest_date != today_ist` → send an email with `jobs.xlsx` attached (subject `[JobRadar] Daily digest: {N} open matches`), then set `meta.last_digest_date`.
@@ -624,7 +665,7 @@ python -m src.main stats               # print DB stats
 
 `--dry-run`: fetch and evaluate, **write nothing** to the DB, send nothing, print what would be new. (Implement by running `apply_crawl` inside a transaction that is rolled back.)
 
-Logging: use the `logging` module to stdout, format `%(asctime)s %(levelname)s %(message)s`. Log each company failure as one WARNING line. Never log secrets or full descriptions. The workflow logs the compressed state asset size and emits a warning if it exceeds 70 MiB.
+Logging: use the `logging` module to stdout, format `%(asctime)s %(levelname)s %(message)s`. Log each company failure as one WARNING line. Never log secrets or full descriptions. The workflow logs the xz-compressed state asset size and emits a warning if it exceeds 300 MiB.
 
 ## B13. GitHub Actions (`.github/workflows/crawl.yml`)
 
@@ -695,8 +736,8 @@ jobs:
           asset_size = Path("data/jobs.db.xz").stat().st_size
           print(f"State database: {database_size / 1048576:.2f} MiB")
           print(f"Compressed state asset: {asset_size / 1048576:.2f} MiB")
-          if asset_size > 70 * 1024 * 1024:
-              print("::warning::Compressed state asset exceeds 70 MiB.")
+          if asset_size > 300 * 1024 * 1024:
+              print("::warning::Compressed state asset exceeds 300 MiB.")
           PY
 
       - name: Save state as release asset
@@ -776,9 +817,9 @@ Checks:
 - Failure test: temporarily break one slug → run still green, error recorded in `companies.last_error`.
 
 ### Phase 7: Company discovery + scale (keep ALL hits)
-Build `discovery.py` and the `discover` command. **Keep every company that has a valid board, even with zero jobs today** (it may hire later). Zero-job and no-India-job companies go to Tier 3.
+Build `discovery.py`, `scripts/discover_ats.py`, and the `discover` command. **Keep every company that has a valid board, even with zero jobs today** (it may hire later). Zero-job and no-India-job companies go to Tier 3.
 
-**Inputs** (`--input FILE`, repeatable; also read everything in `config/inputs/` and `config/seed_company_names.txt` by default):
+**Inputs** (`--input FILE`, repeatable; also read all `config/seed_company_names*.txt` files and everything in `config/inputs/` by default):
 - `.txt`: one company name per line; `#` comments and blank lines ignored.
 - `.csv`: header must contain `name`; optional `website` (domain or URL). Other columns ignored.
 - The human has two existing company databases; they convert each to CSV as described in A6.
@@ -790,10 +831,11 @@ Build `discovery.py` and the `discover` command. **Keep every company that has a
 2. hyphenated (`acme-corp`)
 3. no-space name + `hq`
 4. no-space name + `inc`
-Do NOT use first-word-only slugs (too many false matches). Probe, for each of greenhouse / lever / ashby, each candidate in order; stop probing that ATS at the first valid board. A company may hit more than one ATS; keep all hits and flag them `multi_ats`.
+Do NOT use first-word-only slugs (too many false matches). Probe, for each of greenhouse / lever / ashby / workable / smartrecruiters, each candidate in order; stop probing that ATS at the first valid board. A company may hit more than one ATS; keep all hits and log them as `multi_ats`.
 - Valid board = HTTP 200 and a parseable response (zero jobs is still valid).
 - Use the matching adapter's `fetch` + `parse`; compute `job_count` and `india_job_count` (`detect_country(location) == "India"`).
 - For Greenhouse also read the board name from `GET https://boards-api.greenhouse.io/v1/boards/{slug}` (field `name`) if available, and store it as `board_name`. Record `sample_url` (first job URL, or empty).
+- If a board-name field is available, compare its normalized value with the input company name and reject a mismatch. Keep candidates from ATS responses that do not expose board identity for human review before merge.
 - **Rate limit:** global maximum `--rps` requests/second (default 2, hard cap 5). Honor 429 `Retry-After`. At 2 rps, ~3,000 names can take several hours: this is expected. Run it locally, not on GitHub Actions.
 - **Resumable:** keep `data/discover_progress.json` (set of `name|ats|slug` already probed). A rerun skips them. Write progress at least every 50 probes and on Ctrl-C.
 
@@ -803,8 +845,10 @@ Do NOT use first-word-only slugs (too many false matches). Probe, for each of gr
   - Greenhouse: `(?:boards|job-boards)\.greenhouse\.io/(?:embed/job_board\?for=)?([a-z0-9_-]+)`
   - Lever: `jobs\.lever\.co/([a-z0-9_-]+)`
   - Ashby: `jobs\.ashbyhq\.com/([a-z0-9_.-]+)`
+  - Workable: `apply\.workable\.com/([a-z0-9_-]+)`
+  - SmartRecruiters: `jobs\.smartrecruiters\.com/([a-z0-9_-]+)`
   A detected slug is accepted only after it passes the same live validity check as Step 1.
-- Unsupported ATS links (`myworkdayjobs.com`, `apply.workable.com`, `smartrecruiters.com`, `zohorecruit`) → append `name,ats,url` to `config/unsupported_ats_hits.csv` (feeds Phase 8).
+- Unsupported ATS links (`myworkdayjobs.com`, `zohorecruit`) → append `name,ats,url` to `config/unsupported_ats_hits.csv` (feeds Phase 8).
 - If the HTML contains `"@type":"JobPosting"` (any spacing/quoting variant) → append `name,url,signal` to `config/custom_pages.csv` with `signal=jsonld` (feeds Phase 9).
 
 **Output:** `config/companies_candidates.csv` with columns `name,ats,slug,tier,job_count,india_job_count,board_name,sample_url,source`. `tier` = `2` if `india_job_count > 0`, else `3`. `source` ∈ `probe | careers_page`. **Tier 1 is never assigned by code; the human edits it by hand.**
@@ -836,7 +880,7 @@ Do each sub-step separately and stop after each. For every one: verify live firs
   - Search the monthly story with `https://hn.algolia.com/api/v1/search_by_date?tags=story,author_whoishiring&query=Who%20is%20hiring`.
   - Select the newest story by `created_at_i` whose title is "Who is hiring" (exclude "Who wants to be hired"), then fetch `https://hn.algolia.com/api/v1/items/{story_id}`.
   - Inspect top-level `children` comments only. From each non-deleted comment, get the first non-empty text line, split on `|` (also accept em-dash separators), and use the first field as the company name. Ignore comments without a recognizable delimiter; deduplicate names.
-  - `python -m src.main discover-hn` writes `config/inputs/hn_who_is_hiring_YYYY-MM.txt`. It is a generated file, refreshed on rerun for that thread; the default `discover` command reads `config/inputs/` and probes its companies against the supported ATS endpoints. Do not modify `seed_company_names.txt`.
+  - `python -m src.main discover-hn` writes `config/inputs/hn_who_is_hiring_YYYY-MM.txt`. It is a generated file, refreshed on rerun for that thread; `scripts/discover_ats.py` reads `config/inputs/` and probes its companies against the supported ATS endpoints. Do not modify seed files.
   - Run the command manually once a month before `python -m src.main discover`; do not add it to the 15-minute crawl workflow.
   - Verify endpoint response shapes live before implementation. Tests use saved synthetic fixtures and never access the network.
 - **9f. Common Crawl ATS slug harvesting (only if asked):** a separate weekly job, never part of the 15-minute crawler.

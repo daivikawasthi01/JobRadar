@@ -114,3 +114,78 @@ async def get_json(
         async with semaphore:
             return await _do_fetch()
     return await _do_fetch()
+
+
+async def get_text(
+    session: aiohttp.ClientSession,
+    url: str,
+    *,
+    timeout_seconds: float = 15.0,
+    retries: int = 3,
+    semaphore: asyncio.Semaphore | None = None,
+) -> str:
+    """Fetch plain text with the same retry and status handling as get_json."""
+    timeout = aiohttp.ClientTimeout(total=timeout_seconds)
+
+    async def _do_fetch() -> str:
+        attempt = 0
+        while True:
+            try:
+                async with session.request("GET", url, timeout=timeout) as resp:
+                    status = resp.status
+                    if status == 404:
+                        raise NotFoundError(f"HTTP 404 Not Found: {url}")
+                    if 200 <= status < 300:
+                        return await resp.text()
+
+                    if status == 429 or 500 <= status < 600:
+                        attempt += 1
+                        if attempt > retries:
+                            raise FetchError(
+                                f"HTTP {status} error at {url} after {retries} retries"
+                            )
+
+                        wait_time = 0.0
+                        if status == 429:
+                            retry_after = resp.headers.get("Retry-After")
+                            if retry_after:
+                                try:
+                                    wait_time = min(float(retry_after), 30.0)
+                                except ValueError:
+                                    wait_time = 0.0
+                        if wait_time <= 0:
+                            wait_time = (2 ** (attempt - 1)) + random.uniform(0.0, 0.5)
+                        logger.warning(
+                            "HTTP %d for %s; waiting %.1fs (attempt %d/%d)",
+                            status,
+                            url,
+                            wait_time,
+                            attempt,
+                            retries,
+                        )
+                        await asyncio.sleep(wait_time)
+                        continue
+
+                    text = await resp.text()
+                    raise FetchError(f"HTTP {status} Client Error at {url}: {text[:200]}")
+            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+                attempt += 1
+                if attempt > retries:
+                    raise FetchError(
+                        f"Network error at {url} after {retries} retries: {exc}"
+                    ) from exc
+                wait_time = (2 ** (attempt - 1)) + random.uniform(0.0, 0.5)
+                logger.warning(
+                    "Network error (%s) for %s; waiting %.1fs (attempt %d/%d)",
+                    exc,
+                    url,
+                    wait_time,
+                    attempt,
+                    retries,
+                )
+                await asyncio.sleep(wait_time)
+
+    if semaphore is not None:
+        async with semaphore:
+            return await _do_fetch()
+    return await _do_fetch()

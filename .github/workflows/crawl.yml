@@ -66,8 +66,8 @@ jobs:
           asset_size = Path("data/jobs.db.xz").stat().st_size
           print(f"State database: {database_size / 1048576:.2f} MiB")
           print(f"Compressed state asset: {asset_size / 1048576:.2f} MiB")
-          if asset_size > 70 * 1024 * 1024:
-              print("::warning::Compressed state asset exceeds 70 MiB; review growth before reaching GitHub's 2 GiB release-asset limit.")
+          if asset_size > 300 * 1024 * 1024:
+              print("::warning::Compressed state asset exceeds 300 MiB; review growth before reaching GitHub's 2 GiB release-asset limit.")
           PY
 
       - name: Save state as release asset
