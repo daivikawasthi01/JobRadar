@@ -15,25 +15,13 @@
 | A1 | Install Python 3.11+, Git, and Claude Code. Create a GitHub account. | Before Phase 0 | 30-60 min |
 | A2 | Create a **private** GitHub repo, clone it locally. | Before Phase 0 | 5 min |
 | A3 | Turn on Google 2-Step Verification, then create a Gmail **App Password** (Google Account → Security → App passwords). Save the 16-character code. | Before Phase 5 | 10 min |
-| A4 | Create the empty `state` branch (commands in A4 below). | Before Phase 6 | 5 min |
+| A4 | No manual state-branch setup is needed; the first successful Phase 6 workflow creates the `state` GitHub Release. | Phase 6 | automatic |
 | A5 | Add GitHub repo Secrets: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `ALERT_TO` (Repo → Settings → Secrets and variables → Actions). | Before Phase 6 | 5 min |
 | A6 | Build the company list. Put `seed_company_names.txt` (~1,000 names, included) into `config/`. Convert your **two existing company databases** to CSV with a `name` column (plus `website` if you have it) and put them in `config/inputs/`. Run `discover` (Phase 7; it runs for hours and is resumable), spot-check ~20 random hits for wrong matches, then run `discover --merge`. Finally, **hand-edit `tier` to `1`** for your 200-300 dream companies. | Phase 7+ | 1-2 hrs of your time, plus hours of unattended running |
 | A7 | Review the first 50-100 matches yourself and report false positives/negatives so filters can be tuned. | After Phase 3 and 6 | 2-3 hrs |
 | A8 | Set Gmail filter + phone notifications (README §12). | After Phase 5 | 10 min |
 | A9 | Keep your resume, LinkedIn, GitHub profile, and outreach message ready. The crawler is useless without fast action. | Parallel | ongoing |
 | A10 | Track applications in a **Google Sheet** you maintain by hand. (The program does not manage this. See §B14.) | Ongoing | ongoing |
-
-**A4 commands (run once, from the repo root):**
-```bash
-git checkout --orphan state
-git rm -rf . 2>/dev/null
-mkdir -p data && touch data/.gitkeep
-git add data/.gitkeep
-git commit -m "init state branch"
-git push origin state
-git checkout main
-```
-(If your default branch is `master`, use that instead of `main`.)
 
 ## Realistic time estimate
 
@@ -72,7 +60,7 @@ These are estimates, not guarantees. The slowest part is the company list, not t
 - Package layout `src/` run as `python -m src.main ...`.
 - State lives in `data/` (SQLite DB + Excel). Config lives in `config/`.
 - Email via Gmail SMTP over SSL: `smtp.gmail.com`, port `465`.
-- Scheduler: GitHub Actions every 15 minutes (Phase 6). State persisted on a dedicated `state` branch.
+- Scheduler: GitHub Actions every 15 minutes (Phase 6). State is stored as a compressed `jobs.db.xz` asset on the `state` GitHub Release.
 
 ## B2. Repository layout (create exactly this)
 
@@ -91,7 +79,7 @@ These are estimates, not guarantees. The slowest part is the company list, not t
 │   ├── companies_candidates.csv   # written by `discover`
 │   ├── unsupported_ats_hits.csv   # written by `discover` (Workday etc., for Phase 8)
 │   └── custom_pages.csv           # written by `discover` (JSON-LD pages, for Phase 9)
-├── data/                       # runtime state (gitignored on main; lives on `state` branch)
+├── data/                       # runtime state (gitignored; stored in the `state` release asset)
 ├── scripts/
 │   ├── probe_endpoints.py      # live check, saves fixtures
 │   └── smoke_live.py           # live end-to-end check on a few companies
@@ -204,7 +192,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   country TEXT,
   remote INTEGER,
   url TEXT NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
+  description BLOB NOT NULL DEFAULT X'',
   posted_at TEXT,
   salary TEXT,
   min_exp REAL,
@@ -228,6 +216,8 @@ CREATE TABLE IF NOT EXISTS meta (
   value TEXT
 );
 ```
+
+Job descriptions remain available in the database as UTF-8 text compressed with zlib. `Store` compresses descriptions on insert/update and migrates existing plain-text rows when opening the database; callers that need the original text use `decompress_description`.
 
 ## B4. Config (`config/config.yaml`). Create with exactly these defaults
 
@@ -474,6 +464,7 @@ class Store:
     def record_error(self, company: Company, err: Exception, now: str) -> None
     def pending_alerts(self, limit: int) -> list[sqlite3.Row]   # matched=1, alerted=0, status='open', ORDER BY first_seen DESC
     def mark_alerted(self, job_ids: list[str]) -> None
+    def prune_closed_jobs(self, now: str, retention_days: int = 60) -> int
     def get_meta(self, key) -> str | None
     def set_meta(self, key, value) -> None
     def stats(self) -> dict
@@ -527,6 +518,8 @@ UPDATE companies SET first_crawled_at = COALESCE(first_crawled_at, now), last_cr
        last_error=NULL, consecutive_errors=0, consecutive_404=0, empty_streak=<computed>
 ```
 `CrawlDiff` has: `new`, `new_matched`, `closed`, `reopened` (lists of job_ids).
+
+Descriptions are stored as zlib-compressed UTF-8 BLOBs without changing the `Job.description` input text. At the end of a successful non-dry-run cycle, delete jobs that have been closed for more than 60 days and run `VACUUM`. Keep all open jobs and recently closed jobs.
 
 **Auto-tier rule (same transaction, after the job updates):** count this company's rows with `matched=1 AND status='open'`. If the company's base `tier = 3` and the count is `> 0` → `auto_tier = 2`. Otherwise → `auto_tier = NULL`. Companies with base tier 1 or 2 are never changed by this rule.
 
@@ -593,15 +586,16 @@ python -m src.main stats               # print DB stats
 2. `due = store.companies_due(...)`.
 3. Create one `aiohttp` session; for each due company run `adapter.fetch` concurrently (`asyncio.gather` with `return_exceptions=True`, concurrency already bounded by the semaphore).
 4. For each result: on exception → `store.record_error`; on success → evaluate filters on every job, then `store.apply_crawl`.
-5. Unless `--dry-run`: `export_excel`.
-6. Unless `--no-email` or `--dry-run`: fetch `pending_alerts(max_jobs_per_email)`; if any → `send_email`; on success → `mark_alerted`; optionally `send_ntfy`.
-7. **Daily digest:** if `now_ist.hour >= daily_digest_hour_ist` and `meta.last_digest_date != today_ist` → send an email with `jobs.xlsx` attached (subject `[JobRadar] Daily digest: {N} open matches`), then set `meta.last_digest_date`.
-8. Print ONE summary line: `run ok | companies=<n> ok=<n> errors=<n> | jobs_seen=<n> new=<n> new_matched=<n> closed=<n> | emails=<0/1> | secs=<n>`.
-9. Exit code: `0` normally (even if some companies failed); `1` only on a crash outside per-company handling; `2` on config errors.
+5. Unless `--dry-run`: prune jobs closed more than 60 days ago and run `VACUUM`.
+6. Unless `--dry-run`: `export_excel`.
+7. Unless `--no-email` or `--dry-run`: fetch `pending_alerts(max_jobs_per_email)`; if any → `send_email`; on success → `mark_alerted`; optionally `send_ntfy`.
+8. **Daily digest:** if `now_ist.hour >= daily_digest_hour_ist` and `meta.last_digest_date != today_ist` → send an email with `jobs.xlsx` attached (subject `[JobRadar] Daily digest: {N} open matches`), then set `meta.last_digest_date`.
+9. Print ONE summary line: `run ok | companies=<n> ok=<n> errors=<n> | jobs_seen=<n> new=<n> new_matched=<n> closed=<n> | emails=<0/1> | secs=<n>`.
+10. Exit code: `0` normally (even if some companies failed); `1` only on a crash outside per-company handling; `2` on config errors.
 
 `--dry-run`: fetch and evaluate, **write nothing** to the DB, send nothing, print what would be new. (Implement by running `apply_crawl` inside a transaction that is rolled back.)
 
-Logging: use the `logging` module to stdout, format `%(asctime)s %(levelname)s %(message)s`. Log each company failure as one WARNING line. Never log secrets or full descriptions.
+Logging: use the `logging` module to stdout, format `%(asctime)s %(levelname)s %(message)s`. Log each company failure as one WARNING line. Never log secrets or full descriptions. The workflow logs the compressed state asset size and emits a warning if it exceeds 70 MiB.
 
 ## B13. GitHub Actions (`.github/workflows/crawl.yml`)
 
@@ -626,11 +620,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/checkout@v4
-        with:
-          ref: state
-          path: data
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -638,29 +627,70 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      - name: Restore crawler state from release
+        id: restore-state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p data
+          releases="$(gh release list --limit 1000 --json tagName --jq '.[].tagName')"
+          if printf '%s\n' "$releases" | grep -Fxq state; then
+            gh release download state --pattern 'jobs.db.xz' --dir data --clobber
+            xz -t data/jobs.db.xz
+            xz -dc data/jobs.db.xz > data/jobs.db
+            rm data/jobs.db.xz
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run crawler
-        run: python -m src.main run
+        run: |
+          if [ "${{ steps.restore-state.outputs.found }}" = "true" ]; then
+            python -m src.main run
+          else
+            python -m src.main run --no-email
+          fi
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           ALERT_TO: ${{ secrets.ALERT_TO }}
 
-      - name: Save state (single force-pushed commit, no history bloat)
-        working-directory: data
+      - name: Compress and report state size
         run: |
-          git config user.name "jobradar-bot"
-          git config user.email "jobradar-bot@users.noreply.github.com"
-          git checkout --orphan new-state
-          git add -A
-          git commit -m "state $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push -f origin new-state:state
+          xz -T0 -9 -c data/jobs.db > data/jobs.db.xz
+          python - <<'PY'
+          from pathlib import Path
+
+          database_size = Path("data/jobs.db").stat().st_size
+          asset_size = Path("data/jobs.db.xz").stat().st_size
+          print(f"State database: {database_size / 1048576:.2f} MiB")
+          print(f"Compressed state asset: {asset_size / 1048576:.2f} MiB")
+          if asset_size > 70 * 1024 * 1024:
+              print("::warning::Compressed state asset exceeds 70 MiB.")
+          PY
+
+      - name: Save state as release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          releases="$(gh release list --limit 1000 --json tagName --jq '.[].tagName')"
+          if ! printf '%s\n' "$releases" | grep -Fxq state; then
+            gh release create state \
+              --target "$GITHUB_SHA" \
+              --title "JobRadar state" \
+              --notes "Latest compressed crawler database. Managed by the crawl workflow."
+          fi
+          gh release upload state data/jobs.db.xz --clobber
+          gh release upload state data/jobs.xlsx --clobber
 ```
 
 Notes for Claude Code to relay to the human:
-- The `state` branch must exist first (A4).
+- The first workflow run creates the `state` release and suppresses email while seeding initial company data.
 - GitHub may delay scheduled runs by minutes, and may skip some under load. That is expected.
 - In public repos GitHub disables scheduled workflows after ~60 days of repo inactivity. Keep the repo **private**.
-- `data/jobs.db` and `data/jobs.xlsx` are downloadable from the `state` branch on github.com.
+- The latest `jobs.db.xz` database asset and `jobs.xlsx` workbook are downloadable from the `state` release on github.com. The workflow logs both uncompressed and compressed database sizes.
+- Keep the old `state` branch until the release-asset workflow has completed successfully a couple of times; the branch is no longer used for persistence.
 - Free-tier minutes are limited on private repos; if the monthly quota is hit, reduce the cron frequency to every 30 min.
 
 ## B14. Out of scope (do not build unless the human explicitly asks)
@@ -710,9 +740,9 @@ Checks:
 - Simulate a new matched job (insert a company, then delete one of its jobs from the DB, then run) → exactly 1 alert email, and a second run sends none.
 
 ### Phase 6: GitHub Actions
-Build: workflow (B13). Human completes A4 and A5. Push to GitHub, trigger `workflow_dispatch`.
+Build: workflow (B13). Human completes A5. Push to GitHub, trigger `workflow_dispatch`.
 Checks:
-- Run succeeds; `state` branch contains `data/jobs.db` and `data/jobs.xlsx`.
+- First run succeeds, sends no email while silently seeding, creates the `state` release with `jobs.db.xz`, and logs the compressed asset size.
 - A second run (after 15 min or manual trigger) shows `new=0` for unchanged companies, proving state persisted.
 - Failure test: temporarily break one slug → run still green, error recorded in `companies.last_error`.
 

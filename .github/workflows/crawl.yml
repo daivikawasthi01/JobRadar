@@ -18,11 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/checkout@v4
-        with:
-          ref: state
-          path: data
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -30,19 +25,61 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      - name: Restore crawler state from release
+        id: restore-state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p data
+          releases="$(gh release list --limit 1000 --json tagName --jq '.[].tagName')"
+          if printf '%s\n' "$releases" | grep -Fxq state; then
+            gh release download state --pattern 'jobs.db.xz' --dir data --clobber
+            xz -t data/jobs.db.xz
+            xz -dc data/jobs.db.xz > data/jobs.db
+            rm data/jobs.db.xz
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "Restored compressed database from the state release."
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No state release exists; this is the initial seed run."
+          fi
+
       - name: Run crawler
-        run: python -m src.main run
+        run: |
+          if [ "${{ steps.restore-state.outputs.found }}" = "true" ]; then
+            python -m src.main run
+          else
+            python -m src.main run --no-email
+          fi
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           ALERT_TO: ${{ secrets.ALERT_TO }}
 
-      - name: Save state (single force-pushed commit, no history bloat)
-        working-directory: data
+      - name: Compress and report state size
         run: |
-          git config user.name "jobradar-bot"
-          git config user.email "jobradar-bot@users.noreply.github.com"
-          git checkout --orphan new-state
-          git add -A
-          git commit -m "state $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push -f origin new-state:state
+          xz -T0 -9 -c data/jobs.db > data/jobs.db.xz
+          python - <<'PY'
+          from pathlib import Path
+
+          database_size = Path("data/jobs.db").stat().st_size
+          asset_size = Path("data/jobs.db.xz").stat().st_size
+          print(f"State database: {database_size / 1048576:.2f} MiB")
+          print(f"Compressed state asset: {asset_size / 1048576:.2f} MiB")
+          if asset_size > 70 * 1024 * 1024:
+              print("::warning::Compressed state asset exceeds 70 MiB; review growth before reaching GitHub's 2 GiB release-asset limit.")
+          PY
+
+      - name: Save state as release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          releases="$(gh release list --limit 1000 --json tagName --jq '.[].tagName')"
+          if ! printf '%s\n' "$releases" | grep -Fxq state; then
+            gh release create state \
+              --target "$GITHUB_SHA" \
+              --title "JobRadar state" \
+              --notes "Latest compressed crawler database. Managed by the crawl workflow."
+          fi
+          gh release upload state data/jobs.db.xz --clobber
+          gh release upload state data/jobs.xlsx --clobber

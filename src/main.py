@@ -242,6 +242,11 @@ async def run_crawl(args: argparse.Namespace) -> int:
                             r.reject_reason or "ok",
                         )
 
+    if not args.dry_run:
+        pruned_jobs = store.prune_closed_jobs(now, retention_days=60)
+        if pruned_jobs:
+            logger.info("Pruned %d jobs closed for more than 60 days.", pruned_jobs)
+
     # Step 5: Excel export
     if not args.dry_run:
         try:

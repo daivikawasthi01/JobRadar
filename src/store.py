@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 import sqlite3
 from typing import Any
+import zlib
 from src.fetcher import NotFoundError
 from src.filters import FilterResult
 from src.models import Company, Job
@@ -40,7 +41,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   country TEXT,
   remote INTEGER,
   url TEXT NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
+  description BLOB NOT NULL DEFAULT X'',
   posted_at TEXT,
   salary TEXT,
   min_exp REAL,
@@ -66,6 +67,18 @@ CREATE TABLE IF NOT EXISTS meta (
 """
 
 
+def compress_description(description: str) -> bytes:
+    """Compress a plain-text job description for compact SQLite storage."""
+    return zlib.compress(description.encode("utf-8"))
+
+
+def decompress_description(description: bytes | str) -> str:
+    """Read compressed descriptions and legacy plain-text rows."""
+    if isinstance(description, str):
+        return description
+    return zlib.decompress(description).decode("utf-8")
+
+
 @dataclass
 class CrawlDiff:
     new: list[str] = field(default_factory=list)
@@ -86,6 +99,16 @@ class Store:
     def _init_db(self) -> None:
         with self.conn:
             self.conn.executescript(SCHEMA_SQL)
+            legacy_rows = self.conn.execute(
+                "SELECT job_id, description FROM jobs WHERE typeof(description) = 'text'"
+            ).fetchall()
+            for row in legacy_rows:
+                self.conn.execute(
+                    "UPDATE jobs SET description = ? WHERE job_id = ?",
+                    (compress_description(row["description"]), row["job_id"]),
+                )
+        if legacy_rows:
+            self.conn.execute("VACUUM")
 
     def close(self) -> None:
         self.conn.close()
@@ -225,7 +248,7 @@ class Store:
                             res.country,
                             remote_val,
                             job.url,
-                            job.description,
+                            compress_description(job.description),
                             job.posted_at,
                             job.salary,
                             res.min_exp,
@@ -261,7 +284,7 @@ class Store:
                                 res.country,
                                 remote_val,
                                 job.url,
-                                job.description,
+                                compress_description(job.description),
                                 job.posted_at,
                                 job.salary,
                                 res.min_exp,
@@ -289,7 +312,7 @@ class Store:
                                 res.country,
                                 remote_val,
                                 job.url,
-                                job.description,
+                                compress_description(job.description),
                                 job.posted_at,
                                 job.salary,
                                 res.min_exp,
@@ -433,6 +456,21 @@ class Store:
                 "UPDATE jobs SET alerted = 1 WHERE job_id = ?",
                 [(jid,) for jid in job_ids],
             )
+
+    def prune_closed_jobs(self, now: str, retention_days: int = 60) -> int:
+        """Prune long-closed jobs and compact the database."""
+        if retention_days < 0:
+            raise ValueError("retention_days must be non-negative")
+        now_dt = datetime.fromisoformat(now.replace("Z", "+00:00"))
+        cutoff = (now_dt - timedelta(days=retention_days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        with self.conn:
+            cursor = self.conn.execute(
+                "DELETE FROM jobs WHERE status = 'closed' AND closed_at < ?",
+                (cutoff,),
+            )
+        deleted = cursor.rowcount
+        self.conn.execute("VACUUM")
+        return deleted
 
     def get_meta(self, key: str) -> str | None:
         """Get value from meta table."""

@@ -176,7 +176,7 @@ jobradar/
 | `remote` | Remote / hybrid / onsite if known |
 | `url` | Direct apply link |
 | `posted_at` | Posted/updated date from the ATS, if provided |
-| `description` | Full text (for experience parsing) |
+| `description` | Full text (used for experience parsing; stored zlib-compressed in SQLite) |
 | `min_exp` | Parsed minimum years of experience (nullable) |
 | `max_exp` | Parsed maximum years (nullable) |
 | `salary` | Salary/CTC text if present |
@@ -192,6 +192,8 @@ jobradar/
 - `companies`: name, ats, slug, tier, last_crawled, last_error
 - `applications`: job_id, applied_on, status, contact_name, contact_link, outreach_sent, follow_up_on, notes
 - `alerts_sent`: job_id, sent_at (prevents duplicate alerts)
+
+Descriptions remain available but are zlib-compressed in the database, with existing plain-text rows migrated automatically on startup. After a successful non-dry-run crawl, jobs closed for more than 60 days are pruned and SQLite is vacuumed. GitHub Actions stores the database as an `xz`-compressed asset on the `state` release, logs the compressed size, and warns above 70 MiB.
 
 ---
 
@@ -349,41 +351,7 @@ Polling strategy:
 - Use `ETag` / `If-Modified-Since` where supported
 - Concurrency cap (e.g. 20-50 at a time) plus small random delays
 
-### Sample GitHub Actions workflow
-
-```yaml
-name: crawl
-on:
-  schedule:
-    - cron: "*/15 * * * *"
-  workflow_dispatch:
-
-permissions:
-  contents: write
-
-jobs:
-  run:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: pip install -r requirements.txt
-      - run: python src/main.py
-        env:
-          GMAIL_USER: ${{ secrets.GMAIL_USER }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          ALERT_TO: ${{ secrets.ALERT_TO }}
-      - name: Commit state
-        run: |
-          git config user.name "jobradar-bot"
-          git config user.email "bot@users.noreply.github.com"
-          git add data/jobs.db data/jobs.xlsx
-          git diff --staged --quiet || git commit -m "update data"
-          git push
-```
+The repository workflow in `.github/workflows/crawl.yml` downloads and restores `jobs.db.xz` from the `state` GitHub Release, runs the crawler, then replaces the release asset with the newly compressed database. On the first run, it seeds state with email suppressed. Keep the old `state` branch until the new workflow has succeeded a couple of times.
 
 Keep the repo **private** (your DB contains your application data), and store credentials only in GitHub **Secrets**.
 

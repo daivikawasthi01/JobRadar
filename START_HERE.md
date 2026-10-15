@@ -15,16 +15,7 @@ Works with Claude Code, Cursor, Windsurf, Cline, Codex, or any agent that can re
    git remote add origin https://github.com/<you>/jobradar.git
    git push -u origin main
    ```
-4. Create the empty `state` branch (the crawler stores its database there):
-   ```bash
-   git checkout --orphan state
-   git rm -rf . 2>/dev/null
-   mkdir -p data && touch data/.gitkeep
-   git add data/.gitkeep
-   git commit -m "init state branch"
-   git push origin state
-   git checkout main
-   ```
+4. No state branch setup is needed. The first GitHub Actions run creates a `state` release containing the compressed database and suppresses email during initial seeding.
 5. Gmail app password (needed from Phase 5): Google Account → turn on 2-Step Verification → Security → App passwords → create one → copy the 16 characters.
 6. GitHub repo → Settings → Secrets and variables → Actions → add `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `ALERT_TO` (needed from Phase 6).
 7. Locally, copy `.env.example` to `.env` and fill it in (never commit it).
@@ -50,7 +41,7 @@ Use this template, changing the phase number:
 | 3 | Role / experience / location filters | All 24 filter test cases pass; skim the printed sample of 20 real jobs |
 | 4 | Wires the `run` command (no email yet) | Dry run writes nothing; first run seeds silently; second run shows `new=0` |
 | 5 | Email alerts + Excel export | Needs your `.env`. You receive the test email and a real alert; `jobs.xlsx` opens |
-| 6 | GitHub Actions every 15 min | Run succeeds; `state` branch gets `jobs.db`; a second run shows `new=0` |
+| 6 | GitHub Actions every 15 min | First run creates a `state` release with `jobs.db.xz` and logs its compressed size; second run restores it and shows `new=0` |
 | 7 | Company discovery (`discover`) + `--merge` | Runs for hours, resumable; spot-check ~20 hits before `--merge` |
 | 8, 9 | Optional: Workday/Workable/SmartRecruiters, custom pages | Only if you ask |
 

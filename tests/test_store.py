@@ -4,7 +4,7 @@ import pytest
 from src.fetcher import FetchError, NotFoundError
 from src.filters import FilterResult
 from src.models import Company, Job
-from src.store import Store
+from src.store import Store, decompress_description
 
 
 @pytest.fixture
@@ -313,3 +313,73 @@ def test_11_company_with_zero_jobs(store):
     assert comp_row["disabled"] == 0
     assert comp_row["last_crawled_at"] == "2026-10-12T00:00:00Z"
     assert comp_row["last_error"] is None
+
+
+def test_descriptions_are_compressed_and_readable(store):
+    comp = Company(name="Acme", ats="greenhouse", slug="acme", tier=1)
+    store.sync_companies([comp])
+    description = "A fresher job description. " * 100
+    job, result = make_job(comp, "compressed")
+    job.description = description
+
+    store.apply_crawl(comp, [(job, result)], "2026-10-12T00:00:00Z")
+
+    row = store.conn.execute(
+        "SELECT description, typeof(description) AS storage_type FROM jobs WHERE job_id = ?",
+        (job.job_id,),
+    ).fetchone()
+    assert row["storage_type"] == "blob"
+    assert len(row["description"]) < len(description.encode("utf-8"))
+    assert decompress_description(row["description"]) == description
+
+
+def test_existing_plain_text_descriptions_are_migrated(tmp_path):
+    db_path = tmp_path / "legacy.db"
+    comp = Company(name="Acme", ats="greenhouse", slug="acme", tier=1)
+    legacy_description = "Legacy description " * 20
+
+    first_store = Store(str(db_path))
+    first_store.sync_companies([comp])
+    job, result = make_job(comp, "legacy")
+    first_store.apply_crawl(comp, [(job, result)], "2026-10-12T00:00:00Z")
+    with first_store.conn:
+        first_store.conn.execute(
+            "UPDATE jobs SET description = ? WHERE job_id = ?",
+            (legacy_description, job.job_id),
+        )
+    first_store.close()
+
+    migrated_store = Store(str(db_path))
+    row = migrated_store.conn.execute(
+        "SELECT description, typeof(description) AS storage_type FROM jobs WHERE job_id = ?",
+        (job.job_id,),
+    ).fetchone()
+    assert row["storage_type"] == "blob"
+    assert decompress_description(row["description"]) == legacy_description
+    migrated_store.close()
+
+
+def test_prune_closed_jobs_keeps_recent_and_open_jobs(store):
+    comp = Company(name="Acme", ats="greenhouse", slug="acme", tier=1)
+    store.sync_companies([comp])
+    jobs = [make_job(comp, f"prune-{i}") for i in range(3)]
+    store.apply_crawl(comp, jobs, "2026-10-15T00:00:00Z")
+    store.conn.executemany(
+        "UPDATE jobs SET status = ?, closed_at = ? WHERE job_id = ?",
+        [
+            ("closed", "2026-08-14T00:00:00Z", jobs[0][0].job_id),
+            ("closed", "2026-08-16T00:00:00Z", jobs[1][0].job_id),
+            ("open", "2026-08-01T00:00:00Z", jobs[2][0].job_id),
+        ],
+    )
+
+    deleted = store.prune_closed_jobs("2026-10-15T00:00:00Z", retention_days=60)
+
+    assert deleted == 1
+    remaining = {
+        row["job_id"]
+        for row in store.conn.execute("SELECT job_id FROM jobs")
+    }
+    assert jobs[0][0].job_id not in remaining
+    assert jobs[1][0].job_id in remaining
+    assert jobs[2][0].job_id in remaining
