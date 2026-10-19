@@ -67,7 +67,7 @@ def build_email(rows: list[sqlite3.Row], now_utc: str) -> tuple[str, str, str]:
     """Pure function building subject, text body, and HTML body for alert emails.
 
     - Subject: [New Job] {N} new matches: {Company1}, {Company2}, {Company3}… (max 3 names, then …)
-    - HTML body: table with Role | Company | Location | Exp | Posted | Apply
+    - HTML body: table with Role | Company | Stage | Location | Exp | Batch year | Posted | Apply
     - Times shown in IST. All fields HTML-escaped.
     """
     if not rows:
@@ -148,8 +148,10 @@ def _render_jobs_email(
         exp_disp = format_exp(r["min_exp"], r["max_exp"])
         batch_disp = format_batch_year(r)
         posted_disp = utc_to_ist_str(r["posted_at"]) or "Recently"
+        stage = format_stage(r)
+        stage_disp = f" [{stage}]" if stage else ""
         text_lines.append(
-            f"- {r['title']} at {r['company']} ({r['location'] or 'Location unspecified'}) "
+            f"- {r['title']} at {r['company']}{stage_disp} ({r['location'] or 'Location unspecified'}) "
             f"[Exp: {exp_disp}, Batch year: {batch_disp}, Posted: {posted_disp}]"
         )
         text_lines.append(f"  Apply: {r['url']}")
@@ -164,6 +166,7 @@ def _render_jobs_email(
     for r in rows:
         title_esc = html.escape(str(r["title"]))
         comp_esc = html.escape(str(r["company"]))
+        stage_esc = html.escape(format_stage(r))
         loc_esc = html.escape(str(r["location"] or "Unspecified"))
         exp_esc = html.escape(format_exp(r["min_exp"], r["max_exp"]))
         batch_esc = html.escape(format_batch_year(r))
@@ -174,6 +177,7 @@ def _render_jobs_email(
             f"<tr>"
             f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'><strong>{title_esc}</strong></td>"
             f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{comp_esc}</td>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0; white-space: nowrap;'>{stage_esc}</td>"
             f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{loc_esc}</td>"
             f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: center;'>{exp_esc}</td>"
             f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: center;'>{batch_esc}</td>"
@@ -200,6 +204,7 @@ def _render_jobs_email(
         <tr style="background-color: #f1f5f9; color: #475569;">
           <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1;">Role</th>
           <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1;">Company</th>
+          <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1;">Stage</th>
           <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1;">Location</th>
           <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: center;">Exp</th>
           <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: center;">Batch year</th>
@@ -219,6 +224,26 @@ def _render_jobs_email(
 </html>"""
 
     return (text_body, html_body)
+
+
+SEGMENT_LABELS = {
+    "seed": "Seed",
+    "series_a": "Series A",
+    "series_b": "Series B",
+    "series_c_plus": "Series C+",
+    "midsize": "Mid-size",
+    "large": "Large",
+}
+
+
+def format_stage(row: sqlite3.Row) -> str:
+    """Company stage label such as 'Seed · 25 ppl', or '' when unknown."""
+    keys = row.keys()
+    label = SEGMENT_LABELS.get(row["segment"] if "segment" in keys else None, "")
+    size = row["team_size"] if "team_size" in keys else None
+    if label and size:
+        return f"{label} · {size} ppl"
+    return label
 
 
 def format_batch_year(row: sqlite3.Row) -> str:

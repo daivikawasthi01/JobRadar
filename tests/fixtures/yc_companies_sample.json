@@ -1,0 +1,110 @@
+[
+ {
+  "name": "Razorpay",
+  "slug": "razorpay",
+  "website": "https://razorpay.com",
+  "all_locations": "Bengaluru, KA, India",
+  "regions": [
+   "India",
+   "South Asia",
+   "Remote",
+   "Partly Remote"
+  ],
+  "team_size": 2700,
+  "stage": "Growth",
+  "status": "Active",
+  "batch": "Winter 2015",
+  "isHiring": true,
+  "industry": "Fintech"
+ },
+ {
+  "name": "RedCarpetUp",
+  "slug": "redcarpetup",
+  "website": "http://redcarpetup.com",
+  "all_locations": "Gurugram, HR, India; Remote",
+  "regions": [
+   "India",
+   "South Asia",
+   "Remote",
+   "Fully Remote"
+  ],
+  "team_size": 100,
+  "stage": "Growth",
+  "status": "Active",
+  "batch": "Summer 2015",
+  "isHiring": false,
+  "industry": "Fintech"
+ },
+ {
+  "name": "GoLorry",
+  "slug": "golorry",
+  "website": "http://www.golorry.com",
+  "all_locations": "Hyderabad, Telangana, India",
+  "regions": [
+   "India",
+   "South Asia",
+   "Remote",
+   "Partly Remote"
+  ],
+  "team_size": 30,
+  "stage": "Early",
+  "status": "Active",
+  "batch": "Winter 2016",
+  "isHiring": false,
+  "industry": "B2B"
+ },
+ {
+  "name": "Markupwand",
+  "slug": "markupwand",
+  "website": "http://markupwand.com",
+  "all_locations": "Bengaluru, KA, India",
+  "regions": [
+   "India",
+   "South Asia"
+  ],
+  "team_size": 3,
+  "stage": "Early",
+  "status": "Inactive",
+  "batch": "Summer 2012",
+  "isHiring": false,
+  "industry": "B2B"
+ },
+ {
+  "name": "CircuitHub",
+  "slug": "circuithub",
+  "website": "https://circuithub.com",
+  "all_locations": "London, England, United Kingdom",
+  "regions": [
+   "United Kingdom",
+   "Europe",
+   "Remote",
+   "Partly Remote"
+  ],
+  "team_size": 58,
+  "stage": "Early",
+  "status": "Active",
+  "batch": "Winter 2012",
+  "isHiring": true,
+  "industry": "Industrials"
+ },
+ {
+  "name": "Zuddl",
+  "slug": "zuddl",
+  "website": "http://www.zuddl.com",
+  "all_locations": "San Francisco, CA, USA; TS, India; Remote",
+  "regions": [
+   "United States of America",
+   "India",
+   "America / Canada",
+   "South Asia",
+   "Remote",
+   "Fully Remote"
+  ],
+  "team_size": 120,
+  "stage": "Growth",
+  "status": "Active",
+  "batch": "Summer 2020",
+  "isHiring": true,
+  "industry": "B2B"
+ }
+]

@@ -279,6 +279,12 @@ class DiscoveryManager:
                     timeout_seconds=10.0,
                     retries=1,
                 )
+            # SmartRecruiters answers 200 with an empty list for any slug, so an
+            # empty response proves nothing about the company; reject it.
+            if ats == "smartrecruiters" and not jobs:
+                self.record_probe(key)
+                return None
+
             # Valid board reached
             job_count = len(jobs)
             india_jobs = [j for j in jobs if detect_country(j.location) == "India"]

@@ -15,6 +15,7 @@ from src.discovery import run_discovery
 from src.export import export_excel
 from src.filters import evaluate
 from src.hn_discovery import HNDiscoveryError, run_hn_discovery
+from src.yc_discovery import YCDiscoveryError, run_yc_discovery
 from src.models import Company, Job
 from src.notify import (
     IST,
@@ -24,7 +25,7 @@ from src.notify import (
     send_email,
     send_ntfy,
 )
-from src.registry import RegistryError, load_companies, load_dismissed
+from src.registry import RegistryError, load_companies, load_company_meta, load_dismissed
 from src.store import Store
 from src.textutil import now_utc_iso
 
@@ -135,6 +136,21 @@ def hn_discovery_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def yc_discovery_command(args: argparse.Namespace) -> int:
+    """Refresh India-region YC companies as discovery input plus stage metadata."""
+    setup_logging()
+    try:
+        count, written = asyncio.run(run_yc_discovery(args.output, args.meta))
+    except YCDiscoveryError as exc:
+        print(f"YC discovery error: {exc}", file=sys.stderr)
+        return 1
+    print(
+        f"Wrote {count} YC India companies to {args.output}; {written} metadata row(s) "
+        f"added or updated in {args.meta}. Run `python -m src.main discover` next."
+    )
+    return 0
+
+
 async def fetch_due_companies(
     session: aiohttp.ClientSession,
     companies: list[Company],
@@ -234,7 +250,7 @@ async def run_crawl(args: argparse.Namespace) -> int:
     else:
         store = Store(str(db_file))
 
-    store.sync_companies(companies)
+    store.sync_companies(companies, load_company_meta(args.company_meta))
 
     # Step 2: Determine due companies
     now = now_utc_iso()
@@ -423,6 +439,7 @@ def main(argv: list[str] | None = None) -> int:
     run_parser.add_argument("--tier", type=int, choices=[1, 2, 3], help="Crawl only specific tier")
     run_parser.add_argument("--company", help="Crawl only company with this slug")
     run_parser.add_argument("--limit", type=int, help="Limit number of companies to crawl")
+    run_parser.add_argument("--company-meta", default="config/company_meta.csv", help="Path to company_meta.csv")
     run_parser.set_defaults(func=lambda args: asyncio.run(run_crawl(args)))
 
     # stats
@@ -447,6 +464,15 @@ def main(argv: list[str] | None = None) -> int:
         help="Directory for the dated names file consumed by `discover`",
     )
     hn_parser.set_defaults(func=hn_discovery_command)
+
+    # discover-yc
+    yc_parser = subparsers.add_parser(
+        "discover-yc",
+        help="Import India-region YC companies as discovery input with stage metadata",
+    )
+    yc_parser.add_argument("--output", default="config/inputs/yc_india.csv", help="Discovery input CSV to write")
+    yc_parser.add_argument("--meta", default="config/company_meta.csv", help="Company metadata CSV to update")
+    yc_parser.set_defaults(func=yc_discovery_command)
 
     # test-email
     test_email_parser = subparsers.add_parser("test-email", help="Send a test alert email")

@@ -205,3 +205,23 @@ def test_greenhouse_slug_collision_is_rejected(tmp_path, monkeypatch):
 
     assert result is None
     assert "Acme|greenhouse|acme" in manager.progress
+
+
+def test_empty_smartrecruiters_board_is_rejected(tmp_path, monkeypatch):
+    """SmartRecruiters returns 200 with no postings for any slug, real or not."""
+    import src.discovery as discovery
+
+    class EmptySmartRecruiters(FakeAdapter):
+        async def fetch_with_board_name(self, session, company, **kwargs):
+            self.calls += 1
+            return [], ""
+
+    adapter = EmptySmartRecruiters()
+    monkeypatch.setattr(discovery, "ADAPTERS", {"smartrecruiters": adapter})
+    manager = make_manager(tmp_path)
+
+    result = asyncio.run(manager.probe_ats_slug(None, "Acme", "smartrecruiters", "acme"))
+
+    assert result is None
+    assert adapter.calls == 1
+    assert "Acme|smartrecruiters|acme" in manager.progress

@@ -10,6 +10,7 @@ import zlib
 from src.fetcher import NotFoundError
 from src.filters import FilterResult
 from src.models import Company, Job
+from src.registry import SEGMENTS, STARTUP_SEGMENTS, CompanyMeta
 from src.textutil import now_utc_iso
 
 logger = logging.getLogger(__name__)
@@ -137,6 +138,13 @@ def job_fingerprint(company: str, title: str, location: str) -> str:
     return f"{_normalize_company(company)}|{' '.join(kept or title_words)}"
 
 
+# SQL sort key matching registry.segment_rank: seed first, unknown before large.
+SEGMENT_RANK_SQL = "CASE COALESCE(c.segment, 'unknown') " + " ".join(
+    f"WHEN '{segment}' THEN {rank}" for rank, segment in enumerate(SEGMENTS)
+) + f" ELSE {SEGMENTS.index('unknown')} END"
+STARTUP_SQL = "c.segment IN (" + ", ".join(f"'{s}'" for s in sorted(STARTUP_SEGMENTS)) + ")"
+
+
 def _parse_utc(value: str) -> datetime:
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     if parsed.tzinfo is None:
@@ -173,6 +181,10 @@ class Store:
                 )
             if "next_check" not in company_columns:
                 self.conn.execute("ALTER TABLE companies ADD COLUMN next_check TEXT")
+            if "segment" not in company_columns:
+                self.conn.execute("ALTER TABLE companies ADD COLUMN segment TEXT")
+            if "team_size" not in company_columns:
+                self.conn.execute("ALTER TABLE companies ADD COLUMN team_size INTEGER")
 
             job_columns = {
                 row["name"] for row in self.conn.execute("PRAGMA table_info(jobs)")
@@ -246,8 +258,16 @@ class Store:
     def close(self) -> None:
         self.conn.close()
 
-    def sync_companies(self, companies: list[Company]) -> None:
-        """Upsert companies from companies.csv without resetting crawl stats."""
+    def sync_companies(
+        self, companies: list[Company], meta: dict[str, CompanyMeta] | None = None
+    ) -> None:
+        """Upsert companies from companies.csv without resetting crawl stats.
+
+        When `meta` (from company_meta.csv, keyed by normalized name) is given, each
+        company's segment and team size are set from it, or cleared if absent.
+        """
+        from src.discovery import normalize_company_name
+
         with self.conn:
             for comp in companies:
                 self.conn.execute(
@@ -262,6 +282,12 @@ class Store:
                     """,
                     (comp.key, comp.name, comp.ats, comp.slug, comp.tier),
                 )
+                if meta is not None:
+                    m = meta.get(normalize_company_name(comp.name))
+                    self.conn.execute(
+                        "UPDATE companies SET segment = ?, team_size = ? WHERE company_key = ?",
+                        (m.segment if m else None, m.team_size if m else None, comp.key),
+                    )
 
     def companies_due(
         self,
@@ -285,27 +311,29 @@ class Store:
         query = """
             SELECT company_key, name, ats, slug, tier, auto_tier,
                    COALESCE(auto_tier, tier) AS effective_tier,
-                   last_crawled_at, priority_board, next_check
-            FROM companies
+                   last_crawled_at, priority_board, next_check,
+                   COALESCE({STARTUP}, 0) AS startup
+            FROM companies AS c
             WHERE disabled = 0
               AND (
                 (next_check IS NOT NULL AND next_check <= ?)
                 OR (
                   next_check IS NULL AND (
                     last_crawled_at IS NULL
-                    OR (priority_board = 1 AND last_crawled_at <= ?)
-                    OR (priority_board = 0 AND COALESCE(auto_tier, tier) = 1 AND last_crawled_at <= ?)
-                    OR (priority_board = 0 AND COALESCE(auto_tier, tier) = 2 AND last_crawled_at <= ?)
-                    OR (priority_board = 0 AND COALESCE(auto_tier, tier) = 3 AND last_crawled_at <= ?)
+                    OR ((priority_board = 1 OR {STARTUP}) AND last_crawled_at <= ?)
+                    OR (priority_board = 0 AND NOT COALESCE({STARTUP}, 0) AND COALESCE(auto_tier, tier) = 1 AND last_crawled_at <= ?)
+                    OR (priority_board = 0 AND NOT COALESCE({STARTUP}, 0) AND COALESCE(auto_tier, tier) = 2 AND last_crawled_at <= ?)
+                    OR (priority_board = 0 AND NOT COALESCE({STARTUP}, 0) AND COALESCE(auto_tier, tier) = 3 AND last_crawled_at <= ?)
                   )
                 )
               )
             ORDER BY
                 priority_board DESC,
+                startup DESC,
                 COALESCE(auto_tier, tier) ASC,
                 CASE WHEN last_crawled_at IS NULL THEN 1 ELSE 0 END ASC,
                 last_crawled_at ASC
-        """
+        """.replace("{STARTUP}", STARTUP_SQL)
         rows = cur.execute(
             query,
             (now, cutoff_priority, cutoff_t1, cutoff_t2, cutoff_t3),
@@ -315,11 +343,11 @@ class Store:
         if len(rows) > 800:
             priority_and_tier1_2 = [
                 r for r in rows
-                if r["priority_board"] == 1 or r["effective_tier"] in (1, 2)
+                if r["priority_board"] == 1 or r["startup"] or r["effective_tier"] in (1, 2)
             ]
             lower_priority = [
                 r for r in rows
-                if r["priority_board"] != 1 and r["effective_tier"] > 2
+                if r["priority_board"] != 1 and not r["startup"] and r["effective_tier"] > 2
             ]
             deferred_count = max(0, len(rows) - 800)
             logger.info(
@@ -547,9 +575,9 @@ class Store:
                     self._next_check(
                         now,
                         company.tier,
-                        bool(comp_row["priority_board"]) or any(
-                            res.matched for _, res in jobs_with_results
-                        ),
+                        bool(comp_row["priority_board"])
+                        or comp_row["segment"] in STARTUP_SEGMENTS
+                        or any(res.matched for _, res in jobs_with_results),
                         tier1_min_interval_minutes,
                         tier2_min_interval_minutes,
                         tier3_min_interval_minutes,
@@ -657,7 +685,8 @@ class Store:
                     self._next_check(
                         now,
                         company.tier,
-                        bool(comp_row["priority_board"]) if comp_row else False,
+                        bool(comp_row["priority_board"]) or comp_row["segment"] in STARTUP_SEGMENTS
+                        if comp_row else False,
                         tier1_min_interval_minutes,
                         tier2_min_interval_minutes,
                         tier3_min_interval_minutes,
@@ -669,17 +698,21 @@ class Store:
             )
 
     def pending_alerts(self, limit: int = 100) -> list[sqlite3.Row]:
-        """Fetch pending job alerts: matched=1, alerted=0, status='open' ordered newest first."""
+        """Fetch pending job alerts: matched=1, alerted=0, status='open'.
+
+        Ordered startup-first by company segment (seed, Series A, B, ...), then newest first.
+        """
         if limit <= 0:
             return []
         cur = self.conn.cursor()
         rows = cur.execute(
             """
-            SELECT * FROM jobs
-            WHERE matched = 1 AND alerted = 0 AND status = 'open'
-            ORDER BY first_seen DESC
+            SELECT j.*, c.segment, c.team_size FROM jobs AS j
+            LEFT JOIN companies AS c USING (company_key)
+            WHERE j.matched = 1 AND j.alerted = 0 AND j.status = 'open'
+            ORDER BY {SEGMENT_RANK_SQL}, j.first_seen DESC
             LIMIT ?
-            """,
+            """.replace("{SEGMENT_RANK_SQL}", SEGMENT_RANK_SQL),
             (limit,),
         ).fetchall()
         selected: list[sqlite3.Row] = []
@@ -793,10 +826,11 @@ class Store:
         recent = self._recently_alerted(now, window_days)
         rows = self.conn.execute(
             """
-            SELECT * FROM jobs
-            WHERE matched = 1 AND status = 'open'
-            ORDER BY first_seen DESC
-            """
+            SELECT j.*, c.segment, c.team_size FROM jobs AS j
+            LEFT JOIN companies AS c USING (company_key)
+            WHERE j.matched = 1 AND j.status = 'open'
+            ORDER BY {SEGMENT_RANK_SQL}, j.first_seen DESC
+            """.replace("{SEGMENT_RANK_SQL}", SEGMENT_RANK_SQL)
         ).fetchall()
         selected: list[sqlite3.Row] = []
         seen_sources: dict[str, set[str]] = {}

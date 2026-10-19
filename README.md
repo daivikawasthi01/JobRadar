@@ -248,6 +248,15 @@ python scripts/discover_ats.py
 
 The first command saves a dated names file under `config/inputs/`; `scripts/discover_ats.py` reads the seed-name lists and that directory, then probes Greenhouse, Lever, Ashby, Workable, and SmartRecruiters at up to two requests per second. Candidates are written to `config/companies_candidates.csv`; review slug/name matches before running with `--merge`. Run HN discovery monthly. It does not parse HN posts into jobs, change seed files, or run in the 15-minute crawl workflow.
 
+### Y Combinator India startups (monthly)
+
+```bash
+python -m src.main discover-yc
+python -m src.main discover --input config/inputs/yc_india.csv
+```
+
+`discover-yc` pulls India-region YC companies from the open yc-oss dataset into `config/inputs/yc_india.csv`. It also tags each one in `config/company_meta.csv` with a stage estimated from headcount (seed / Series A / Series B / mid-size / large). Startup-stage boards are polled every 15 minutes whatever their tier, come first in alert emails, and carry a `Stage` label such as `Seed · 25 ppl`. To correct a stage, edit its row and set `source` to `manual` so later imports leave it alone.
+
 For a weekly Common Crawl sweep, `scripts/harvest_slugs.py` queries recent crawl indexes for Greenhouse, Lever, Ashby, Workable, and SmartRecruiters job URLs, screens each board once for India locations or internship titles, and proposes passing boards in a pull request. The workflow caches screened and rejected slugs in `config/commoncrawl_harvest.json`; review proposed company names and tiers before merging. It is separate from the 15-minute crawl.
 
 `companies.csv` format:

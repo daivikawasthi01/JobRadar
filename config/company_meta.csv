@@ -1,0 +1,165 @@
+# Company stage for startup-first polling and alert order. segment is one of:
+# seed, series_a, series_b, series_c_plus, midsize, unknown, large. Set source=manual on rows you edit so imports keep them.
+name,segment,team_size,hq_country,source
+100x,seed,3,India,yc:Summer 2022
+AccioJob,series_a,120,India,yc:Winter 2019
+Advantage Club,series_b,220,India,yc:Summer 2021
+AlgoSurg Inc,seed,3,India,yc:Winter 2018
+AlgoTest,series_a,40,India,yc:Summer 2022
+AlgoUniversity,series_a,40,India,yc:Summer 2021
+Anatomic,seed,3,India,yc:Winter 2020
+Apollo,seed,11,India,yc:Winter 2022
+AppX,seed,30,India,yc:Summer 2021
+BentoLabs AI,seed,5,India,yc:Spring 2026
+Better Opinions,seed,12,India,yc:Winter 2022
+Betterhalf,seed,25,India,yc:Winter 2021
+Bimaplan,seed,30,India,yc:Winter 2021
+Binks,series_a,70,India,yc:Summer 2019
+Bolna AI,seed,21,India,yc:Fall 2025
+Bulk MRO Industrial Supply,series_b,170,India,yc:Winter 2017
+BusinessOnBot,seed,25,India,yc:Winter 2021
+Cardboard,seed,8,India,yc:Winter 2026
+CashBook,seed,4,India,yc:Winter 2021
+Cashfree Payments,series_b,200,India,yc:Summer 2017
+Cityfurnish,series_a,90,India,yc:Winter 2019
+Clear,midsize,900,India,yc:Summer 2014
+ClickPe,seed,2,India,yc:Winter 2023
+Clinikally,series_a,125,India,yc:Summer 2022
+Clueso,seed,25,India,yc:Winter 2023
+Codingal,series_a,100,India,yc:Winter 2021
+CompUp,series_a,35,India,yc:Summer 2022
+Cone,seed,8,India,yc:Summer 2022
+CORE,seed,3,India,yc:Summer 2023
+Coulomb AI,seed,10,India,yc:Summer 2021
+Coupl,seed,8,India,yc:Summer 2022
+Cradle,seed,2,India,yc:Summer 2020
+Craze,seed,8,India,yc:Summer 2022
+Decentro,series_a,60,India,yc:Summer 2020
+Digi-Prex,series_a,32,India,yc:Summer 2019
+Dockup,seed,4,India,yc:Winter 2019
+DocVita,seed,14,India,yc:Winter 2020
+Dost Education,seed,30,India,yc:Winter 2017
+DrDroid,seed,8,India,yc:Winter 2023
+Drip Capital,series_b,280,India,yc:Summer 2015
+EduRev,seed,24,India,yc:Winter 2020
+Edyst,seed,11,India,yc:Winter 2019
+Enerjazz,seed,9,other,yc:Summer 2021
+EthosX,seed,2,other,yc:Summer 2022
+Exly,series_a,95,India,yc:Winter 2019
+Explorex,seed,25,India,yc:Summer 2020
+FamPay,seed,24,India,yc:Summer 2019
+Farmako Healthcare,series_a,40,India,yc:Summer 2020
+farmtheory,series_a,65,India,yc:Winter 2020
+Fieldproxy,seed,15,India,yc:Winter 2022
+FifthTry,seed,4,India,yc:Winter 2021
+FlatX,seed,2,India,yc:Summer 2022
+Floworks,seed,20,India,yc:Winter 2023
+Flux Auto,series_a,56,India,yc:Winter 2021
+FrontPage,seed,5,India,yc:Summer 2021
+GimBooks,seed,16,India,yc:Winter 2021
+GoLorry,seed,30,India,yc:Winter 2016
+GoSats,seed,8,other,yc:Winter 2022
+GroMo,series_a,100,India,yc:Winter 2021
+Groww,large,1050,India,yc:Winter 2018
+Gullak Money,seed,15,India,yc:Summer 2022
+Helloverify,midsize,600,India,yc:Winter 2018
+Hiration,seed,22,India,yc:Winter 2020
+IMT Care,seed,23,India,yc:Winter 2022
+Infer,seed,9,India,yc:Summer 2021
+InferEdge,seed,20,India,yc:Winter 2022
+Infinity,seed,15,India,yc:Winter 2024
+Inito,series_a,100,India,yc:Winter 2019
+Ivy Homes,series_a,80,India,yc:Summer 2021
+Kaagaz,seed,11,India,yc:Winter 2022
+Kailash Labs,seed,2,India,yc:Fall 2026
+Kalam Labs,seed,10,India,yc:Summer 2021
+Karbon Card,series_a,144,India,yc:Summer 2021
+Khatabook,series_b,350,India,yc:Summer 2018
+Kodo,series_a,45,India,yc:Winter 2021
+Kosh,series_a,56,India,yc:Winter 2020
+Koshex,seed,21,India,yc:Summer 2021
+Lab0,seed,7,India,yc:Spring 2026
+Landeed,series_a,35,India,yc:Summer 2022
+Leena AI,midsize,500,other,yc:Summer 2018
+Lokal,seed,24,India,yc:Summer 2019
+Loop Health,seed,27,India,yc:Winter 2020
+marketfeed,seed,18,India,yc:Summer 2021
+Material Depot,series_a,50,India,yc:Winter 2022
+Maya Labs,seed,5,India,yc:Summer 2022
+"MedPiper Technologies, Inc",series_a,55,India,yc:Summer 2020
+Meesho,large,1450,India,yc:Summer 2016
+Morphle Labs,series_a,65,India,yc:Winter 2020
+Mudrex,seed,11,India,yc:Winter 2019
+MySivi,seed,10,India,yc:Winter 2022
+National Finance Olympiad,seed,12,India,yc:Winter 2022
+Neodocs,seed,20,India,yc:Summer 2021
+Novatr,series_b,180,India,yc:Summer 2021
+ODWEN,seed,21,India,yc:Summer 2021
+OkCredit,series_a,70,India,yc:Summer 2018
+OneFin,series_a,50,India,yc:Winter 2017
+Optifye.ai,seed,8,India,yc:Winter 2025
+Orange Health Labs,midsize,1100,India,yc:Summer 2020
+Paasa,seed,9,India,yc:Summer 2024
+PayCrunch,seed,5,India,yc:Winter 2022
+Peoplebox.ai,series_a,35,India,yc:Summer 2022
+Perseus,seed,4,India,yc:Fall 2025
+Pragmatic Leaders (Ankai Inc),seed,10,India,yc:Winter 2021
+PrimeVault,seed,11,India,yc:Summer 2022
+Pulse Active Stations Network,seed,10,India,yc:Winter 2019
+Raven,seed,4,India,yc:Summer 2022
+Razorpay,large,2700,India,yc:Winter 2015
+RDash,series_a,80,India,yc:Winter 2022
+Reclaim Protocol,seed,17,India,yc:Winter 2021
+RecordBook,seed,15,India,yc:Winter 2022
+Redapto,seed,7,India,yc:Fall 2025
+RedBrick AI,seed,13,other,yc:Winter 2022
+RedCarpetUp,series_a,100,India,yc:Summer 2015
+Redcliffe Lifetech,large,3500,India,yc:Winter 2021
+Ressl AI,seed,3,India,yc:Winter 2026
+Retape,seed,3,India,yc:Winter 2023
+Rivia.AI,seed,5,India,yc:Summer 2021
+RocketSDR,seed,30,India,yc:Winter 2021
+Rowboat Labs,seed,3,India,yc:Summer 2024
+SalaryBook,seed,7,India,yc:Summer 2021
+SalaryBox,series_a,40,India,yc:Summer 2021
+SALT,seed,14,India,yc:Winter 2022
+Sanitation and Health Rights in India (SHRI),seed,1,other,yc:Winter 2016
+SaveIN,series_a,60,India,yc:Winter 2022
+Sculpt,seed,2,India,yc:Summer 2022
+Skill-lync,large,3000,India,yc:Winter 2019
+Slidely AI,seed,5,India,yc:Summer 2022
+SpadeWorks,seed,13,India,yc:Winter 2022
+Spark Studio,seed,27,India,yc:Summer 2021
+Spenny,seed,2,India,yc:Winter 2020
+Statiq.,series_b,200,India,yc:Summer 2020
+StayQrious,seed,29,India,yc:Winter 2020
+Stownest,series_a,80,India,yc:Summer 2021
+SuperAPI,seed,2,India,yc:Winter 2023
+SuperKalam,seed,20,India,yc:Winter 2023
+SureBright,series_a,35,India,yc:Summer 2024
+Swadesh,seed,10,other,yc:Summer 2019
+Swadesi Way,seed,9,India,yc:Winter 2021
+Swipe,series_a,60,India,yc:Summer 2021
+Taali Inc,unknown,0,India,yc:Winter 2019
+TagMango,seed,30,India,yc:Winter 2020
+Tilt,seed,12,India,yc:Winter 2021
+Unschool,series_a,35,India,yc:Winter 2021
+UrbanKisaan,series_a,53,India,yc:Winter 2020
+Vahan,series_a,85,India,yc:Summer 2019
+Veera Health,seed,4,India,yc:Winter 2021
+Volopay,seed,11,India,yc:Summer 2020
+Voosh,seed,15,India,yc:Winter 2021
+WareIQ,series_a,50,India,yc:Summer 2020
+Waybill,seed,3,India,yc:Summer 2026
+Weekday,series_a,38,India,yc:Winter 2021
+"Wifi Dabba, Inc.",seed,21,India,yc:Winter 2017
+Writesonic,series_a,35,India,yc:Summer 2021
+xPay,seed,3,India,yc:Winter 2024
+Yenmo,seed,5,India,yc:Winter 2024
+Zealth,seed,2,India,yc:Winter 2021
+Zeo Route Planner,seed,15,other,yc:Winter 2020
+Zepto,midsize,1300,India,yc:Winter 2021
+ZiffyHomes,series_a,57,India,yc:Summer 2018
+zingbus,series_a,40,India,yc:Winter 2021
+ZOKO,seed,18,India,yc:Winter 2021
+Zuddl,series_a,120,other,yc:Summer 2020

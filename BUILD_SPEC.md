@@ -139,6 +139,15 @@ CSV header (exact): `name,ats,slug,tier` (an optional 5th column `extra` is allo
 - Duplicate `(ats, slug)` rows: keep first, log a warning.
 - `company_key = f"{ats}:{slug}"`
 
+### B3.1a Company stage metadata (`config/company_meta.csv`)
+
+Header: `name,segment,team_size,hq_country,source`; `#` comment lines allowed. Rows match `companies.csv` by `discovery.normalize_company_name(name)`, so `companies.csv` keeps its 4/5-column format.
+- `segment` ∈ `seed | series_a | series_b | series_c_plus | midsize | unknown | large` (that is also the alert sort order). Anything else is read as `unknown` with a warning.
+- When only headcount is known, `registry.estimate_segment(team_size)` maps ≤30 → seed, ≤150 → series_a, ≤400 → series_b, ≤2000 → midsize, else large. This is an estimate.
+- Imports (`discover-yc`) add or refresh rows but never overwrite a row whose `source` is `manual`.
+- `run` copies `segment` and `team_size` into the `companies` table on every sync (new nullable columns `segment TEXT`, `team_size INTEGER`).
+- **Startup segments** (`seed`, `series_a`, `series_b`) are polled at `priority_min_interval_minutes` regardless of tier, sort right after priority boards in `companies_due`, and are never deferred by the 800-board cap. This does not change their tier: Tier 1 is still only set by the human.
+
 ```python
 @dataclass(frozen=True)
 class Company:
@@ -636,7 +645,7 @@ def send_ntfy(topic: str, title: str, message: str) -> None   # simple POST to h
 - Env vars: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `ALERT_TO`. If any is missing → raise a clear `ConfigError` (do not print values).
 - `smtplib.SMTP_SSL("smtp.gmail.com", 465)`, `login`, `send_message`. Use `email.message.EmailMessage` with plain text + HTML alternative.
 - **Subject:** `[New Job] {N} new matches: {Company1}, {Company2}, {Company3}…` (max 3 company names, then `…`).
-- **HTML body:** a table with columns `Role | Company | Location | Exp | Batch year | Posted | Apply` where Apply is a clickable link. Show detected graduation years in `Batch year`, or `Not specified` if none were parsed. Sort newest first. Show `Exp` as `0-2`, `2+`, or `?` (unknown). Show times in IST.
+- **HTML body:** a table with columns `Role | Company | Stage | Location | Exp | Batch year | Posted | Apply` where Apply is a clickable link. `Stage` shows the company segment and team size (e.g. `Seed · 25 ppl`), blank when unknown. Show detected graduation years in `Batch year`, or `Not specified` if none were parsed. Sort startup-first by segment (B3.1a), then newest first. Show `Exp` as `0-2`, `2+`, or `?` (unknown). Show times in IST.
 - Cap rows at `max_jobs_per_email`. Rows beyond the cap stay `alerted=0` and go out next cycle.
 - HTML-escape every field (job titles come from the internet).
 - `mark_alerted` is called **only after** `send_email` succeeds. On failure: log the error, leave `alerted=0`, continue (the next cycle retries).
@@ -662,6 +671,7 @@ python -m src.main run [--dry-run] [--no-email] [--tier {1,2,3}] [--company SLUG
 python -m src.main validate            # validate config.yaml and companies.csv, print summary, exit 0/2
 python -m src.main discover --input FILE [--input FILE ...] [--rps 2] [--merge]    # Phase 7
 python -m src.main discover-hn          # fetch latest HN hiring thread into config/inputs/
+python -m src.main discover-yc          # India-region YC companies -> config/inputs/yc_india.csv + company_meta.csv
 python -m src.main stats               # print DB stats
 ```
 
@@ -897,6 +907,7 @@ Do each sub-step separately and stop after each. For every one: verify live firs
   - `python -m src.main discover-hn` writes `config/inputs/hn_who_is_hiring_YYYY-MM.txt`. It is a generated file, refreshed on rerun for that thread; `scripts/discover_ats.py` reads `config/inputs/` and probes its companies against the supported ATS endpoints. Do not modify seed files.
   - Run the command manually once a month before `python -m src.main discover`; do not add it to the 15-minute crawl workflow.
   - Verify endpoint response shapes live before implementation. Tests use saved synthetic fixtures and never access the network.
+- **9g. Y Combinator India companies:** discovery input only. `python -m src.main discover-yc` downloads `https://yc-oss.github.io/api/companies/all.json` (the open yc-oss dataset; verified fields: `name`, `website`, `regions`, `all_locations`, `team_size`, `stage`, `status`, `batch`), keeps `status` ∈ {Active, Public} with `"India"` in `regions`, writes `config/inputs/yc_india.csv` (`name,website`), and upserts `config/company_meta.csv` (segment from team size, `large` for Public; `hq_country` = India when the first listed location is in India, else `other`; `source=yc:<batch>`). Run monthly before `discover`. Tests use `tests/fixtures/yc_companies_sample.json`.
 - **9f. Common Crawl ATS slug harvesting (only if asked):** a separate weekly job, never part of the 15-minute crawler.
   - Read recent collection IDs from `https://index.commoncrawl.org/collinfo.json`; query the official CDX index for Greenhouse (`boards.greenhouse.io`, `job-boards.greenhouse.io`), Lever (`jobs.lever.co`), Ashby (`jobs.ashbyhq.com`), Workable (`apply.workable.com`), and SmartRecruiters (`jobs.smartrecruiters.com`) job URLs.
   - Use low-rate URL-prefix partitions, honor `Retry-After`, recursively split failed prefixes, and persist completed/pending work. The index can time out for broad queries; report unresolved partitions rather than silently treating them as empty. Do not overload the Common Crawl index.

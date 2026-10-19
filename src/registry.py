@@ -1,5 +1,6 @@
 """Company registry loader and validator for JobRadar."""
 import csv
+from dataclasses import dataclass
 import logging
 from pathlib import Path
 from src.models import Company
@@ -145,3 +146,110 @@ def load_dismissed(path: str | Path = "config/dismissed.txt") -> set[str]:
         if line and not line.startswith("#"):
             entries.add(line.rstrip("/"))
     return entries
+
+
+# Company stage, ordered from most to least preferred for alerts.
+SEGMENTS = ("seed", "series_a", "series_b", "series_c_plus", "midsize", "unknown", "large")
+STARTUP_SEGMENTS = frozenset({"seed", "series_a", "series_b"})
+META_HEADER = ["name", "segment", "team_size", "hq_country", "source"]
+
+
+@dataclass(frozen=True)
+class CompanyMeta:
+    name: str
+    segment: str = "unknown"
+    team_size: int | None = None
+    hq_country: str = ""
+    source: str = ""
+
+
+def segment_rank(segment: str | None) -> int:
+    """Sort key: seed first, large last, unknown just before large."""
+    try:
+        return SEGMENTS.index(segment or "unknown")
+    except ValueError:
+        return SEGMENTS.index("unknown")
+
+
+def estimate_segment(team_size: int | None) -> str:
+    """Estimate funding stage from headcount when the round is not known.
+
+    <=30 people ~ seed, <=150 ~ Series A, <=400 ~ Series B, <=2000 midsize, else large.
+    This is a heuristic; edit config/company_meta.csv and set source=manual to override.
+    """
+    if team_size is None or team_size <= 0:
+        return "unknown"
+    if team_size <= 30:
+        return "seed"
+    if team_size <= 150:
+        return "series_a"
+    if team_size <= 400:
+        return "series_b"
+    if team_size <= 2000:
+        return "midsize"
+    return "large"
+
+
+def _meta_key(name: str) -> str:
+    from src.discovery import normalize_company_name
+
+    return normalize_company_name(name)
+
+
+def load_company_meta(path: str | Path = "config/company_meta.csv") -> dict[str, CompanyMeta]:
+    """Load company stage metadata keyed by normalized company name.
+
+    Unknown segments become `unknown`; malformed rows are skipped with a warning.
+    A missing file means no metadata.
+    """
+    p = Path(path)
+    if not p.exists():
+        return {}
+    meta: dict[str, CompanyMeta] = {}
+    with open(p, newline="", encoding="utf-8") as f:
+        for line_no, row in enumerate(csv.DictReader(r for r in f if not r.startswith("#")), start=2):
+            name = (row.get("name") or "").strip()
+            if not name:
+                continue
+            segment = (row.get("segment") or "unknown").strip()
+            if segment not in SEGMENTS:
+                logger.warning("company_meta.csv line %d: unknown segment %r for %s", line_no, segment, name)
+                segment = "unknown"
+            raw_size = (row.get("team_size") or "").strip()
+            meta[_meta_key(name)] = CompanyMeta(
+                name=name,
+                segment=segment,
+                team_size=int(raw_size) if raw_size.isdigit() else None,
+                hq_country=(row.get("hq_country") or "").strip(),
+                source=(row.get("source") or "").strip(),
+            )
+    return meta
+
+
+def upsert_company_meta(path: str | Path, rows: list[CompanyMeta]) -> int:
+    """Add or refresh metadata rows; rows marked source=manual are never overwritten.
+
+    Returns how many rows were added or changed.
+    """
+    p = Path(path)
+    existing = load_company_meta(p)
+    changed = 0
+    for row in rows:
+        key = _meta_key(row.name)
+        old = existing.get(key)
+        if old and old.source == "manual":
+            continue
+        if old != row:
+            existing[key] = row
+            changed += 1
+    p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_suffix(".tmp")
+    with open(tmp, "w", newline="", encoding="utf-8") as f:
+        f.write("# Company stage for startup-first polling and alert order. segment is one of:\n")
+        f.write(f"# {', '.join(SEGMENTS)}. Set source=manual on rows you edit so imports keep them.\n")
+        writer = csv.writer(f)
+        writer.writerow(META_HEADER)
+        for m in sorted(existing.values(), key=lambda m: m.name.casefold()):
+            writer.writerow([m.name, m.segment, "" if m.team_size is None else m.team_size, m.hq_country, m.source])
+    tmp.replace(p)
+    return changed
