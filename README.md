@@ -257,6 +257,17 @@ python -m src.main discover --input config/inputs/yc_india.csv
 
 `discover-yc` pulls India-region YC companies from the open yc-oss dataset into `config/inputs/yc_india.csv`. It also tags each one in `config/company_meta.csv` with a stage estimated from headcount (seed / Series A / Series B / mid-size / large). Startup-stage boards are polled every 15 minutes whatever their tier, come first in alert emails, and carry a `Stage` label such as `Seed · 25 ppl`. To correct a stage, edit its row and set `source` to `manual` so later imports leave it alone.
 
+### Recently funded Indian startups (daily, automatic)
+
+The `funding-news` workflow runs `python -m src.main discover-funding` every day. It reads the Entrackr and Inc42 RSS feeds, including Inc42's weekly Funding Galore deal table, and adds each funded company with its round (seed / Series A / Series B / ...) to `config/inputs/funding_news.csv` and `config/company_meta.csv`. Freshly funded startups are the ones about to hire. To probe the new names for ATS boards, run locally:
+
+```bash
+git pull
+python -m src.main discover --input config/inputs/funding_news.csv
+```
+
+Then review `config/companies_candidates.csv` and run `python -m src.main discover --merge`.
+
 For a weekly Common Crawl sweep, `scripts/harvest_slugs.py` queries recent crawl indexes for Greenhouse, Lever, Ashby, Workable, and SmartRecruiters job URLs, screens each board once for India locations or internship titles, and proposes passing boards in a pull request. The workflow caches screened and rejected slugs in `config/commoncrawl_harvest.json`; review proposed company names and tiers before merging. It is separate from the 15-minute crawl.
 
 `companies.csv` format:

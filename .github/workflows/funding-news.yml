@@ -1,0 +1,46 @@
+name: funding-news
+
+# Funding feeds keep only the last few days of headlines, so collect them daily.
+# Only config/inputs/funding_news.csv and config/company_meta.csv are committed;
+# companies.csv is never touched (run `discover` + review + `--merge` locally).
+on:
+  schedule:
+    - cron: "40 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: funding-news
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Collect funding headlines
+        run: python -m src.main discover-funding
+
+      - name: Commit updated inputs
+        run: |
+          if git diff --quiet -- config/inputs/funding_news.csv config/company_meta.csv; then
+            echo "No new deals."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config/inputs/funding_news.csv config/company_meta.csv
+          git commit -m "Update funding-news discovery inputs"
+          git pull --rebase origin main
+          git push origin HEAD:main

@@ -16,6 +16,7 @@ from src.export import export_excel
 from src.filters import evaluate
 from src.hn_discovery import HNDiscoveryError, run_hn_discovery
 from src.yc_discovery import YCDiscoveryError, run_yc_discovery
+from src.funding_discovery import run_funding_discovery
 from src.models import Company, Job
 from src.notify import (
     IST,
@@ -147,6 +148,17 @@ def yc_discovery_command(args: argparse.Namespace) -> int:
     print(
         f"Wrote {count} YC India companies to {args.output}; {written} metadata row(s) "
         f"added or updated in {args.meta}. Run `python -m src.main discover` next."
+    )
+    return 0
+
+
+def funding_discovery_command(args: argparse.Namespace) -> int:
+    """Accumulate recently funded startups from funding-news feeds."""
+    setup_logging()
+    deals, companies, changed = asyncio.run(run_funding_discovery(args.output, args.meta))
+    print(
+        f"Parsed {deals} deal(s) from funding feeds; {args.output} now lists {companies} "
+        f"companies; {changed} metadata row(s) added or updated in {args.meta}."
     )
     return 0
 
@@ -473,6 +485,15 @@ def main(argv: list[str] | None = None) -> int:
     yc_parser.add_argument("--output", default="config/inputs/yc_india.csv", help="Discovery input CSV to write")
     yc_parser.add_argument("--meta", default="config/company_meta.csv", help="Company metadata CSV to update")
     yc_parser.set_defaults(func=yc_discovery_command)
+
+    # discover-funding
+    funding_parser = subparsers.add_parser(
+        "discover-funding",
+        help="Accumulate recently funded Indian startups from Entrackr and Inc42 feeds",
+    )
+    funding_parser.add_argument("--output", default="config/inputs/funding_news.csv", help="Discovery input CSV to update")
+    funding_parser.add_argument("--meta", default="config/company_meta.csv", help="Company metadata CSV to update")
+    funding_parser.set_defaults(func=funding_discovery_command)
 
     # test-email
     test_email_parser = subparsers.add_parser("test-email", help="Send a test alert email")

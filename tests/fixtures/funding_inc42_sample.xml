@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic sample with the live Inc42 RSS structure (verified 2026-10-19); company names are made up. -->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel>
+<title>Inc42 Media</title>
+<item><title>From Fitbolt To Orbitly — Indian Startups Raised Over $236 Mn This Week</title><link>https://inc42.com/buzz/funding-galore-sample/</link><pubDate>Sat, 17 Oct 2026 03:30:00 +0000</pubDate>
+<content:encoded><![CDATA[<p>Weekly funding.</p><table><tr><td>Date</td><td>Name</td><td>Sector</td><td>Subsector</td><td>Business Model</td><td>Funding Round Size</td><td>Funding Round Type</td><td>Investors</td><td>Lead Investor</td></tr>
+<tr><td>12 Oct 2026</td><td>Fitbolt</td><td>Ecommerce</td><td>D2C</td><td>B2C</td><td>$41.8 Mn</td><td>Series B</td><td>Value Fund</td><td>Value Fund</td></tr>
+<tr><td>13 Oct 2026</td><td>GreenMove</td><td>Travel Tech</td><td>Electric MaaS</td><td>B2B</td><td>$34.6 Mn</td><td>–</td><td>Impact Fund</td><td>Impact Fund</td></tr>
+<tr><td>16 Oct 2026</td><td>Orbitly</td><td>Advanced Hardware &amp; Technology</td><td>Space</td><td>B2B</td><td>$1.5 Mn</td><td>Pre-Seed</td><td>Angels</td><td>Angels</td></tr>
+<tr><td>16 Oct 2026</td><td>AdLeaf</td><td>AI</td><td>Application Layer</td><td>B2B</td><td>–</td><td>Seed</td><td>Angels</td><td>Angels</td></tr>
+<tr><td></td><td></td></tr>
+</table>]]></content:encoded></item>
+<item><title>Enterprise AI Startup CanvasIQ Nets $29 Mn To Expand GTM Teams</title><link>https://inc42.com/buzz/canvasiq/</link><pubDate>Fri, 16 Oct 2026 08:00:00 +0000</pubDate></item>
+<item><title>Urban Living Board Clears Plans To Raise Up To ₹2,500 Cr</title><link>https://inc42.com/buzz/urban/</link><pubDate>Fri, 16 Oct 2026 07:00:00 +0000</pubDate></item>
+</channel></rss>
