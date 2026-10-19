@@ -128,3 +128,20 @@ def load_companies(
         companies.append(comp)
 
     return companies
+
+
+def load_dismissed(path: str | Path = "config/dismissed.txt") -> set[str]:
+    """Load job URLs, job IDs, or fingerprints the human never wants to see again.
+
+    One entry per line; `#` comments and blank lines are ignored. A missing file
+    means nothing is dismissed.
+    """
+    p = Path(path)
+    if not p.exists():
+        return set()
+    entries: set[str] = set()
+    for line in p.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            entries.add(line.rstrip("/"))
+    return entries

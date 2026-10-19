@@ -340,7 +340,9 @@ Give each match a score (role match + experience fit + company tier + keyword ov
 Free push notifications: the script sends one HTTP POST to `ntfy.sh/<your-secret-topic>` and your phone buzzes. Faster than email.
 
 ### Dedupe
-Record every alerted `job_id` in `alerts_sent` so you never get the same job twice.
+Every opening that reaches you (instant alert or digest) is recorded by fingerprint (company + title, ignoring years, seasons, cities, and work mode) in the `alert_log` table. Reposts, other-city listings, and the same opening on another ATS are not sent again for 120 days (`alerts.repeat_suppression_days`). The daily digest lists only matches you have never been sent; older open matches show as a count and stay in the attached `jobs.xlsx`.
+
+To stop seeing a job (applied, not interested), add its URL or job ID on its own line in `config/dismissed.txt` and push.
 
 ---
 

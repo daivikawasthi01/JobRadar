@@ -346,6 +346,8 @@ alerts:
   max_jobs_per_email: 100
   daily_digest_hour_ist: 8       # attach jobs.xlsx once per day at/after this IST hour
   ntfy_topic: ""                 # optional; empty disables
+  repeat_suppression_days: 120   # never re-alert the same opening within this window
+  dismissed_path: config/dismissed.txt
 
 export:
   excel_path: data/jobs.xlsx
@@ -615,6 +617,14 @@ At the end of a successful non-dry-run cycle, delete jobs that have been closed 
 11. A company with 0 jobs is stored and stays enabled (it is not an error and is never deleted).
 12. Cross-source duplicates share a canonical key; only one is alerted/exported across ATS sources while same-source records remain separate.
 
+### B9.5 Alert ledger (Phase 10)
+- Each job stores `fingerprint = normalized company | normalized title`, where years, seasons, durations, work-mode words, and words from the job's own location (plus major Indian city names) are removed from the title. Reposts, multi-city listings, and the same opening on another ATS share a fingerprint.
+- Table `alert_log(fingerprint PRIMARY KEY, job_id, company, title, url, alerted_at)` records every fingerprint sent by instant alert or digest. `mark_alerted(job_ids, now)` writes it. It is never pruned with closed jobs.
+- `suppress_repeat_alerts(now, window_days, dismissed)` runs before `pending_alerts` and marks `alerted=1` on pending matches whose fingerprint was sent within `repeat_suppression_days`, or whose job ID / URL / fingerprint is in `config/dismissed.txt`.
+- Within one email, same-fingerprint rows are not collapsed (existing same-source rule in B9.2 holds).
+- On first open after upgrade, every `matched=1 AND alerted=1` job is copied into `alert_log` once (`meta.alert_log_backfilled`).
+- The crawl workflow saves state with `if: always()` (unless the restore failed) so alerts sent before a later failure stay recorded. Fetch budget 7 minutes; job timeout 20 minutes; state compressed with `xz -6`.
+
 ## B10. Notifications (`src/notify.py`)
 
 ```python
@@ -663,7 +673,7 @@ python -m src.main stats               # print DB stats
 5. Unless `--dry-run`: prune jobs closed more than 45 days ago and run `VACUUM`.
 6. Unless `--dry-run`: `export_excel`.
 7. Unless `--no-email` or `--dry-run`: fetch `pending_alerts(max_jobs_per_email)`; if any → `send_email`; on success → `mark_alerted`; optionally `send_ntfy`.
-8. **Daily digest:** if `now_ist.hour >= daily_digest_hour_ist` and `meta.last_digest_date != today_ist` → send an email with `jobs.xlsx` attached (subject `[JobRadar] Daily digest: {N} open matches`), then set `meta.last_digest_date`.
+8. **Daily digest:** if `now_ist.hour >= daily_digest_hour_ist` and `meta.last_digest_date != today_ist` → send an email with `jobs.xlsx` attached (subject `[JobRadar] Daily digest: {N} new, {M} open matches`). The body lists only `digest_candidates` (open matches never sent before, e.g. silently seeded boards); earlier matches appear as a count only. On success, `mark_alerted` the listed jobs and set `meta.last_digest_date`.
 9. Print ONE summary line: `run ok | companies=<n> ok=<n> errors=<n> | jobs_seen=<n> new=<n> new_matched=<n> closed=<n> | emails=<0/1> | secs=<n>`.
 10. Exit code: `0` normally (even if some companies failed); `1` only on a crash outside per-company handling; `2` on config errors.
 

@@ -10,6 +10,7 @@ import zlib
 from src.fetcher import NotFoundError
 from src.filters import FilterResult
 from src.models import Company, Job
+from src.textutil import now_utc_iso
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +69,17 @@ CREATE TABLE IF NOT EXISTS meta (
   key TEXT PRIMARY KEY,
   value TEXT
 );
+
+-- One row per job fingerprint that has reached the human (instant alert or digest).
+-- Never pruned with closed jobs, so reposts and relistings are not alerted again.
+CREATE TABLE IF NOT EXISTS alert_log (
+  fingerprint TEXT PRIMARY KEY,
+  job_id TEXT NOT NULL,
+  company TEXT NOT NULL,
+  title TEXT NOT NULL,
+  url TEXT NOT NULL,
+  alerted_at TEXT NOT NULL
+);
 """
 
 
@@ -83,17 +95,46 @@ def decompress_description(description: bytes | str) -> str:
 
 def canonical_job_key(company: str, title: str, location: str) -> str:
     """Normalize company, title, and location for cross-source deduplication."""
-    normalized = []
-    for index, value in enumerate((company, title, location)):
-        part = " ".join(re.sub(r"[^a-z0-9]+", " ", value.casefold()).split())
-        if index == 0:
-            suffixes = {"inc", "incorporated", "llc", "ltd", "limited", "pvt", "private", "corp", "corporation", "co", "company"}
-            words = part.split()
-            while words and words[-1] in suffixes:
-                words.pop()
-            part = " ".join(words)
-        normalized.append(part)
-    return "|".join(normalized)
+    return "|".join(
+        (_normalize_company(company), _normalize_words(title), _normalize_words(location))
+    )
+
+
+COMPANY_SUFFIXES = {"inc", "incorporated", "llc", "ltd", "limited", "pvt", "private", "corp", "corporation", "co", "company"}
+# Words that change between reposts of the same opening and should not make it look new.
+FINGERPRINT_NOISE = re.compile(
+    r"\b(?:20[2-3]\d|summer|winter|spring|fall|autumn|off[ -]?cycle|onsite|on[ -]?site|"
+    r"in[ -]?office|remote|hybrid|wfh|\d+\s*(?:-\s*)?months?|month|start|batch)\b"
+)
+
+
+def _normalize_words(value: str) -> str:
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", value.casefold()).split())
+
+
+def _normalize_company(company: str) -> str:
+    words = _normalize_words(company).split()
+    while words and words[-1] in COMPANY_SUFFIXES:
+        words.pop()
+    return " ".join(words)
+
+
+def job_fingerprint(company: str, title: str, location: str) -> str:
+    """Identify an opening across reposts, cities, seasons, and ATS boards.
+
+    Years, seasons, durations, work-mode words, and words from the job's own
+    location are removed from the title, so "SDE Intern - Pune (Summer 2027)"
+    and "SDE Intern - Bengaluru" share a fingerprint at the same company.
+    """
+    title_n = FINGERPRINT_NOISE.sub(" ", title.casefold())
+    title_words = _normalize_words(title_n).split()
+    location_words = set(_normalize_words(location or "").split())
+    location_words |= {
+        "bengaluru", "bangalore", "hyderabad", "pune", "chennai", "mumbai", "delhi",
+        "gurgaon", "gurugram", "noida", "kolkata", "ahmedabad", "india", "ncr",
+    }
+    kept = [w for w in title_words if w not in location_words]
+    return f"{_normalize_company(company)}|{' '.join(kept or title_words)}"
 
 
 def _parse_utc(value: str) -> datetime:
@@ -138,9 +179,38 @@ class Store:
             }
             if "canonical_key" not in job_columns:
                 self.conn.execute("ALTER TABLE jobs ADD COLUMN canonical_key TEXT")
+            if "fingerprint" not in job_columns:
+                self.conn.execute("ALTER TABLE jobs ADD COLUMN fingerprint TEXT")
             self.conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_jobs_canonical ON jobs(canonical_key, status)"
             )
+            self.conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_fingerprint ON jobs(fingerprint)"
+            )
+            for row in self.conn.execute(
+                "SELECT job_id, company, title, location FROM jobs WHERE fingerprint IS NULL"
+            ).fetchall():
+                self.conn.execute(
+                    "UPDATE jobs SET fingerprint = ? WHERE job_id = ?",
+                    (job_fingerprint(row["company"], row["title"], row["location"]), row["job_id"]),
+                )
+            backfilled = self.conn.execute(
+                "SELECT 1 FROM meta WHERE key = 'alert_log_backfilled'"
+            ).fetchone()
+            if not backfilled:
+                # Matches that existed before the ledger were already emailed or shown
+                # in a digest; record them so they never come back.
+                self.conn.execute(
+                    """
+                    INSERT OR IGNORE INTO alert_log (fingerprint, job_id, company, title, url, alerted_at)
+                    SELECT fingerprint, job_id, company, title, url, first_seen
+                    FROM jobs WHERE matched = 1 AND alerted = 1
+                    ORDER BY first_seen
+                    """
+                )
+                self.conn.execute(
+                    "INSERT INTO meta (key, value) VALUES ('alert_log_backfilled', '1')"
+                )
             legacy_jobs = self.conn.execute(
                 "SELECT job_id, company, title, location FROM jobs WHERE canonical_key IS NULL"
             ).fetchall()
@@ -317,6 +387,7 @@ class Store:
                 remote_val = 1 if job.remote is True else (0 if job.remote is False else None)
                 matched_val = 1 if res.matched else 0
                 canonical_key = canonical_job_key(job.company, job.title, job.location)
+                fingerprint = job_fingerprint(job.company, job.title, job.location)
                 duplicate_exists = cur.execute(
                     "SELECT 1 FROM jobs WHERE canonical_key = ? AND ats != ? AND status = 'open' LIMIT 1",
                     (canonical_key, job.ats),
@@ -329,10 +400,10 @@ class Store:
                         """
                         INSERT INTO jobs (
                             job_id, company_key, company, ats, title, location, country,
-                            remote, url, description, posted_at, salary, canonical_key, min_exp, max_exp,
-                            exp_signal, matched, reject_reason, first_seen, last_seen,
+                            remote, url, description, posted_at, salary, canonical_key, fingerprint,
+                            min_exp, max_exp, exp_signal, matched, reject_reason, first_seen, last_seen,
                             status, closed_at, miss_count, alerted
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', NULL, 0, ?)
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', NULL, 0, ?)
                         """,
                         (
                             job.job_id,
@@ -348,6 +419,7 @@ class Store:
                             job.posted_at,
                             job.salary,
                             canonical_key,
+                            fingerprint,
                             res.min_exp,
                             res.max_exp,
                             res.exp_signal,
@@ -370,7 +442,7 @@ class Store:
                             """
                             UPDATE jobs SET
                                 title = ?, location = ?, country = ?, remote = ?, url = ?,
-                                description = ?, posted_at = ?, salary = ?, canonical_key = ?, min_exp = ?, max_exp = ?,
+                                description = ?, posted_at = ?, salary = ?, canonical_key = ?, fingerprint = ?, min_exp = ?, max_exp = ?,
                                 exp_signal = ?, matched = ?, reject_reason = ?,
                                 last_seen = ?, miss_count = 0, status = 'open', closed_at = NULL
                             WHERE job_id = ?
@@ -385,6 +457,7 @@ class Store:
                                 job.posted_at,
                                 job.salary,
                                 canonical_key,
+                                fingerprint,
                                 res.min_exp,
                                 res.max_exp,
                                 res.exp_signal,
@@ -399,7 +472,7 @@ class Store:
                             """
                             UPDATE jobs SET
                                 title = ?, location = ?, country = ?, remote = ?, url = ?,
-                                description = ?, posted_at = ?, salary = ?, canonical_key = ?, min_exp = ?, max_exp = ?,
+                                description = ?, posted_at = ?, salary = ?, canonical_key = ?, fingerprint = ?, min_exp = ?, max_exp = ?,
                                 exp_signal = ?, matched = ?, reject_reason = ?,
                                 last_seen = ?, miss_count = 0
                             WHERE job_id = ?
@@ -414,6 +487,7 @@ class Store:
                                 job.posted_at,
                                 job.salary,
                                 canonical_key,
+                                fingerprint,
                                 res.min_exp,
                                 res.max_exp,
                                 res.exp_signal,
@@ -623,15 +697,17 @@ class Store:
                 break
         return selected
 
-    def mark_alerted(self, job_ids: list[str]) -> None:
-        """Mark given jobs as alerted."""
+    def mark_alerted(self, job_ids: list[str], now: str | None = None) -> None:
+        """Mark given jobs as alerted and record their fingerprints in the alert ledger."""
         if not job_ids:
             return
+        now = now or now_utc_iso()
         with self.conn:
             cur = self.conn.cursor()
             for job_id in job_ids:
                 row = cur.execute(
-                    "SELECT canonical_key, ats FROM jobs WHERE job_id = ?", (job_id,)
+                    "SELECT canonical_key, ats, fingerprint, company, title, url FROM jobs WHERE job_id = ?",
+                    (job_id,),
                 ).fetchone()
                 if row:
                     cur.execute(
@@ -641,6 +717,100 @@ class Store:
                         """,
                         (row["canonical_key"], row["ats"], job_id),
                     )
+                    if row["fingerprint"]:
+                        cur.execute(
+                            """
+                            INSERT INTO alert_log (fingerprint, job_id, company, title, url, alerted_at)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                            ON CONFLICT(fingerprint) DO UPDATE SET
+                              job_id = excluded.job_id, company = excluded.company,
+                              title = excluded.title, url = excluded.url,
+                              alerted_at = excluded.alerted_at
+                            """,
+                            (row["fingerprint"], job_id, row["company"], row["title"], row["url"], now),
+                        )
+
+    def _recently_alerted(self, now: str, window_days: int) -> set[str]:
+        cutoff = (_parse_utc(now) - timedelta(days=window_days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        return {
+            r["fingerprint"]
+            for r in self.conn.execute(
+                "SELECT fingerprint FROM alert_log WHERE alerted_at >= ?", (cutoff,)
+            )
+        }
+
+    @staticmethod
+    def _is_dismissed(row: sqlite3.Row, dismissed: set[str]) -> bool:
+        return bool(dismissed) and any(
+            value and value in dismissed
+            for value in (row["job_id"], (row["url"] or "").rstrip("/"), row["fingerprint"])
+        )
+
+    def suppress_repeat_alerts(
+        self, now: str, window_days: int = 120, dismissed: set[str] | None = None
+    ) -> int:
+        """Mark pending matches as alerted when the human already saw that opening.
+
+        An opening counts as seen when its fingerprint was alerted within
+        `window_days`, or when it is listed in the dismissed set (job_id, URL, or
+        fingerprint). Returns how many pending jobs were suppressed.
+        """
+        dismissed = dismissed or set()
+        recent = self._recently_alerted(now, window_days)
+        rows = self.conn.execute(
+            """
+            SELECT job_id, url, fingerprint FROM jobs
+            WHERE matched = 1 AND alerted = 0 AND status = 'open'
+            """
+        ).fetchall()
+        suppressed = [
+            r["job_id"] for r in rows
+            if r["fingerprint"] in recent or self._is_dismissed(r, dismissed)
+        ]
+        if suppressed:
+            with self.conn:
+                self.conn.executemany(
+                    "UPDATE jobs SET alerted = 1 WHERE job_id = ?",
+                    [(job_id,) for job_id in suppressed],
+                )
+        return len(suppressed)
+
+    def digest_candidates(
+        self,
+        now: str,
+        limit: int = 100,
+        window_days: int = 120,
+        dismissed: set[str] | None = None,
+    ) -> list[sqlite3.Row]:
+        """Open matches the human has never been sent, e.g. silently seeded boards.
+
+        Anything already in the alert ledger (instant alert or an earlier digest) or
+        dismissed is left out, so a digest never repeats a job.
+        """
+        if limit <= 0:
+            return []
+        dismissed = dismissed or set()
+        recent = self._recently_alerted(now, window_days)
+        rows = self.conn.execute(
+            """
+            SELECT * FROM jobs
+            WHERE matched = 1 AND status = 'open'
+            ORDER BY first_seen DESC
+            """
+        ).fetchall()
+        selected: list[sqlite3.Row] = []
+        seen_sources: dict[str, set[str]] = {}
+        for row in rows:
+            if row["fingerprint"] in recent or self._is_dismissed(row, dismissed):
+                continue
+            sources = seen_sources.setdefault(row["canonical_key"], set())
+            if any(source != row["ats"] for source in sources):
+                continue
+            sources.add(row["ats"])
+            selected.append(row)
+            if len(selected) >= limit:
+                break
+        return selected
 
     def prune_closed_jobs(self, now: str, retention_days: int = 45) -> int:
         """Prune long-closed jobs and compact the database."""

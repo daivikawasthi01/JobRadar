@@ -126,6 +126,8 @@ alerts:
   max_jobs_per_email: 100
   daily_digest_hour_ist: 8
   ntfy_topic: ""
+  repeat_suppression_days: 120   # never re-alert the same opening (company + normalized title) within this window
+  dismissed_path: config/dismissed.txt  # job URLs / job IDs you are done with; never alerted or digested
 
 export:
   excel_path: data/jobs.xlsx

@@ -1,0 +1,3 @@
+# Jobs you are done with (applied, not interested). One per line: the job URL
+# from an alert email, or a job ID like greenhouse:stripe:12345.
+# Listed jobs are never alerted or included in a digest again.

@@ -18,17 +18,18 @@ from src.hn_discovery import HNDiscoveryError, run_hn_discovery
 from src.models import Company, Job
 from src.notify import (
     IST,
+    build_digest_email,
     build_email,
     load_env_file,
     send_email,
     send_ntfy,
 )
-from src.registry import RegistryError, load_companies
+from src.registry import RegistryError, load_companies, load_dismissed
 from src.store import Store
 from src.textutil import now_utc_iso
 
 logger = logging.getLogger("jobradar")
-CRAWL_FETCH_BUDGET_SECONDS = 11 * 60
+CRAWL_FETCH_BUDGET_SECONDS = 7 * 60
 
 
 def setup_logging() -> None:
@@ -335,13 +336,19 @@ async def run_crawl(args: argparse.Namespace) -> int:
 
     # Step 6: Email notifications
     emails_sent = 0
+    dismissed = load_dismissed(cfg.alerts.dismissed_path)
     if not args.dry_run and not args.no_email and cfg.alerts.email_enabled:
+        suppressed = store.suppress_repeat_alerts(
+            now, cfg.alerts.repeat_suppression_days, dismissed
+        )
+        if suppressed:
+            logger.info("Suppressed %d pending match(es) already sent or dismissed.", suppressed)
         pending = store.pending_alerts(limit=cfg.alerts.max_jobs_per_email)
         if pending:
             subject, text, html_body = build_email(pending, now)
             try:
                 send_email(subject, text, html_body)
-                store.mark_alerted([r["job_id"] for r in pending])
+                store.mark_alerted([r["job_id"] for r in pending], now)
                 emails_sent = 1
                 if cfg.alerts.ntfy_topic:
                     send_ntfy(cfg.alerts.ntfy_topic, subject, f"{len(pending)} new jobs matched")
@@ -360,10 +367,15 @@ async def run_crawl(args: argparse.Namespace) -> int:
             matched_open = cur.execute(
                 "SELECT COUNT(*) FROM jobs WHERE matched = 1 AND status = 'open'"
             ).fetchone()[0]
-
-            digest_subject = f"[JobRadar] Daily digest: {matched_open} open matches"
-            digest_text = f"JobRadar daily digest: {matched_open} open matches found. See attached jobs.xlsx."
-            digest_html = f"<p>JobRadar daily digest: <strong>{matched_open}</strong> open matches found.</p><p>Please find <code>jobs.xlsx</code> attached.</p>"
+            digest_rows = store.digest_candidates(
+                now,
+                limit=cfg.alerts.max_jobs_per_email,
+                window_days=cfg.alerts.repeat_suppression_days,
+                dismissed=dismissed,
+            )
+            digest_subject, digest_text, digest_html = build_digest_email(
+                digest_rows, matched_open, now
+            )
 
             excel_path = Path(cfg.export.excel_path)
             attachments = []
@@ -373,6 +385,7 @@ async def run_crawl(args: argparse.Namespace) -> int:
 
             try:
                 send_email(digest_subject, digest_text, digest_html, attachments=attachments)
+                store.mark_alerted([r["job_id"] for r in digest_rows], now)
                 store.set_meta("last_digest_date", today_ist)
                 logger.info("Daily digest sent with jobs.xlsx attached.")
             except Exception as e:

@@ -14,7 +14,7 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 14
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -56,9 +56,12 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           ALERT_TO: ${{ secrets.ALERT_TO }}
 
+      # Save state even if the crawler failed after sending email, so sent alerts
+      # stay marked. Skip only when the restore itself failed (possibly partial DB).
       - name: Compress and report state size
+        if: ${{ always() && steps.restore-state.outcome == 'success' && hashFiles('data/jobs.db') != '' }}
         run: |
-          xz -T0 -9 -c data/jobs.db > data/jobs.db.xz
+          xz -T0 -6 -c data/jobs.db > data/jobs.db.xz
           python - <<'PY'
           from pathlib import Path
 
@@ -71,6 +74,7 @@ jobs:
           PY
 
       - name: Save state as release asset
+        if: ${{ always() && steps.restore-state.outcome == 'success' && hashFiles('data/jobs.db.xz') != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -82,4 +86,6 @@ jobs:
               --notes "Latest compressed crawler database. Managed by the crawl workflow."
           fi
           gh release upload state data/jobs.db.xz --clobber
-          gh release upload state data/jobs.xlsx --clobber
+          if [ -f data/jobs.xlsx ]; then
+            gh release upload state data/jobs.xlsx --clobber
+          fi

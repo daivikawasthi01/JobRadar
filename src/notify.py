@@ -86,10 +86,62 @@ def build_email(rows: list[sqlite3.Row], now_utc: str) -> tuple[str, str, str]:
         comp_summary = ", ".join(seen_companies[:3]) + "…"
 
     subject = f"[New Job] {len(rows)} new matches: {comp_summary}"
+    text_body, html_body = _render_jobs_email(
+        rows,
+        subject,
+        text_intro=f"JobRadar detected {len(rows)} new fresher/entry-level job(s):",
+        heading=f"JobRadar Alert: {len(rows)} New Match(es)",
+        html_intro="New entry-level / fresher roles discovered on company career pages.",
+    )
+    return (subject, text_body, html_body)
 
+
+def build_digest_email(
+    rows: list[sqlite3.Row], open_matches: int, now_utc: str
+) -> tuple[str, str, str]:
+    """Pure function building the daily digest: only matches never sent before.
+
+    `open_matches` is the total of open matched jobs; earlier ones are mentioned
+    as a count only, never listed again.
+    """
+    earlier = max(0, open_matches - len(rows))
+    subject = f"[JobRadar] Daily digest: {len(rows)} new, {open_matches} open matches"
+    earlier_line = (
+        f"{earlier} earlier match(es) are still open; they were sent before and are in the attached jobs.xlsx."
+        if earlier
+        else "No earlier matches are still open."
+    )
+    if not rows:
+        text = f"No new matches since the last email.\n{earlier_line}"
+        html_body = (
+            "<p>No new matches since the last email.</p>"
+            f"<p>{html.escape(earlier_line)}</p>"
+        )
+        return (subject, text, html_body)
+    text_body, html_body = _render_jobs_email(
+        rows,
+        subject,
+        text_intro=f"{len(rows)} match(es) you have not been sent before:",
+        heading=f"JobRadar Digest: {len(rows)} New Match(es)",
+        html_intro=f"Matches you have not been sent before. {earlier_line}",
+        text_outro=earlier_line,
+    )
+    return (subject, text_body, html_body)
+
+
+def _render_jobs_email(
+    rows: list[sqlite3.Row],
+    subject: str,
+    *,
+    text_intro: str,
+    heading: str,
+    html_intro: str,
+    text_outro: str = "",
+) -> tuple[str, str]:
+    """Render the shared job table as (text_body, html_body)."""
     # Plain text body
     text_lines = [
-        f"JobRadar detected {len(rows)} new fresher/entry-level job(s):",
+        text_intro,
         "",
     ]
     for r in rows:
@@ -103,6 +155,8 @@ def build_email(rows: list[sqlite3.Row], now_utc: str) -> tuple[str, str, str]:
         text_lines.append(f"  Apply: {r['url']}")
         text_lines.append("")
 
+    if text_outro:
+        text_lines.append(text_outro)
     text_body = "\n".join(text_lines)
 
     # HTML body
@@ -139,8 +193,8 @@ def build_email(rows: list[sqlite3.Row], now_utc: str) -> tuple[str, str, str]:
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; color: #1e293b; margin: 0; padding: 20px; background-color: #f8fafc;">
   <div style="max-width: 900px; margin: 0 auto; background: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 24px;">
-    <h2 style="margin-top: 0; color: #0f172a; font-size: 20px;">JobRadar Alert: {len(rows)} New Match(es)</h2>
-    <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">New entry-level / fresher roles discovered on company career pages.</p>
+    <h2 style="margin-top: 0; color: #0f172a; font-size: 20px;">{html.escape(heading)}</h2>
+    <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">{html.escape(html_intro)}</p>
     <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
       <thead>
         <tr style="background-color: #f1f5f9; color: #475569;">
@@ -164,7 +218,7 @@ def build_email(rows: list[sqlite3.Row], now_utc: str) -> tuple[str, str, str]:
 </body>
 </html>"""
 
-    return (subject, text_body, html_body)
+    return (text_body, html_body)
 
 
 def format_batch_year(row: sqlite3.Row) -> str:

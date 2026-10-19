@@ -133,6 +133,8 @@ class AlertsConfig:
     max_jobs_per_email: int = 100
     daily_digest_hour_ist: int = 8
     ntfy_topic: str = ""
+    repeat_suppression_days: int = 120
+    dismissed_path: str = "config/dismissed.txt"
 
 
 @dataclass
@@ -224,6 +226,8 @@ def load_config(path: str | Path = "config/config.yaml") -> Config:
         max_jobs_per_email=int(alerts_raw.get("max_jobs_per_email", def_alerts.max_jobs_per_email)),
         daily_digest_hour_ist=int(alerts_raw.get("daily_digest_hour_ist", def_alerts.daily_digest_hour_ist)),
         ntfy_topic=str(alerts_raw.get("ntfy_topic", def_alerts.ntfy_topic)),
+        repeat_suppression_days=int(alerts_raw.get("repeat_suppression_days", def_alerts.repeat_suppression_days)),
+        dismissed_path=str(alerts_raw.get("dismissed_path", def_alerts.dismissed_path)),
     )
 
     def_export = ExportConfig()
