@@ -1,33 +1,41 @@
 name,website,segment,stage,amount_usd_mn,sector,published,source,link
-Qiroko,,seed,pre-seed,0.173,,2026-10-30,entrackr,https://entrackr.com/snippets/qiroko-raises-rs-15-cr-in-pre-seed-round-led-by-isv-capital-12767774
-Manastu Space,,seed,,2.53,,2026-10-30,inc42,https://inc42.com/buzz/exclusive-manastu-space-raises-%e2%82%b922-cr-in-ongoing-funding-round/
-Viridian Ingni Propulsion,,seed,pre seed,0.169,,2026-10-29,entrackr,https://entrackr.com/snippets/viridian-ingni-propulsion-raises-rs-147-cr-in-pre-seed-round-led-by-ipv-12763438
-Venttup,,series_a,pre Series A,3,,2026-10-29,entrackr,https://entrackr.com/snippets/industries-50-startup-venttup-raises-3-mn-in-pre-series-a-led-by-rainmatter-by-zerodha-and-unicorn-india-12764564
-Tensrai,,seed,pre-seed,0.391,,2026-10-29,entrackr,https://entrackr.com/snippets/physical-ai-startup-tensrai-raises-rs-34-cr-in-pre-seed-round-12764908
-Let’s Game Now,,seed,,3.45,,2026-10-29,inc42,https://inc42.com/buzz/lets-game-now-bags-%e2%82%b930-cr-to-organise-more-esports-tournaments/
+Zorit,,seed,,2.8,Ecommerce,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Viridian Ingni Propulsion,,unknown,,,Clean Tech,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Venttup,,series_a,Pre-Series A,3,Enterprise Services,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Troovy,,series_b,Series B,10.5,Ecommerce,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Tradl,,seed,Seed,4.1,Fintech,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Tensrai,,seed,Pre-Seed,,Advance Hardware & Technology,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Simplismart,,series_b,Series B,14,AI,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Rotoris,,series_a,Series A,8.5,Ecommerce,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+ReplyAll,,series_a,Pre-Series A,,Ecommerce,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+QwikBuild,,seed,Pre-Seed,2.3,AI,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Qiroko,,seed,Pre-Seed,,Ecommerce,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Paraayan,,seed,Seed,,Ecommerce,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Nova Spectral AI,,seed,Seed,2.2,Advance Hardware & Technology,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Mochatrade,,seed,Seed,5.5,Fintech,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Matiks,,series_a,Pre-Series A,10,Media & Entertainment,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Manicule,,seed,Seed,1.3,Enterprise Services,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Manastu Space,,seed,,2.3,Advance Hardware & Technology,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Maasi,,seed,Pre-Seed,,Consumer Services,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+LogiXair,,seed,Seed,,Advance Hardware & Technology,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Live2.ai,,series_b,Pre-Series B,13.7,AI,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Let’s Game Now,,seed,,3.2,Media & Entertainment,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+ISLAND Beauty,,unknown,,,Ecommerce,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Glance,,unknown,,,AI,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+dubdub,,seed,Seed,1.3,Media & Entertainment,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Coratia Technologies,,seed,,1.9,Advance Hardware & Technology,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+CopperPilot,,seed,Pre-Seed,,AI,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+CHOSEN,,series_a,Series A*,,Ecommerce,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Cent,,series_a,Series A,15,Healthtech,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+CapGrid,,series_b,Pre-Series B,5.2,Enterprise Services,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Bucketlistt,,seed,Seed,,Travel Tech,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+BioStack,,seed,Seed,9.5,Health Tech,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
+Ace Blend,,series_a,,9.9,Ecommerce,2026-10-31,inc42,https://inc42.com/buzz/from-to-cent-to-matiks-indian-startups-raised-over-132-mn-this-week/
 Jagruti Rehabilitation Centre,,series_a,Series A,3.22,,2026-10-29,entrackr,https://entrackr.com/snippets/jagruti-rehabilitation-centre-raises-rs-28-cr-in-series-a-round-led-by-alkemi-12765269
-ISLAND Beauty,,seed,,0.297,,2026-10-29,entrackr,https://entrackr.com/snippets/island-beauty-raises-rs-258-cr-from-aj-vc-to-expand-skincare-range-12763206
 Docterz,,seed,,0.575,,2026-10-29,entrackr,https://entrackr.com/snippets/docterz-raises-rs-5-cr-from-vineeta-singh-avnish-anand-and-20-doctor-investors-12765193
-Coratia Technologies,,seed,,2.07,,2026-10-29,entrackr,https://entrackr.com/snippets/coratia-technologies-raises-rs-18-cr-in-bridge-round-led-by-mgf-kavachh-12764727
 Bijnis Rebrands As Zorit,,seed,,3.105,,2026-10-29,inc42,https://inc42.com/buzz/bijnis-rebrands-as-zorit-raises-%e2%82%b927-cr-for-b2b-quick-commerce/
-Ace Blend,,series_a,,9.9,,2026-10-29,inc42,https://inc42.com/buzz/ace-blend-raises-9-9-mn-to-fund-clinical-trials-expand-nutrition-portfolio/
-QwikBuild,,seed,pre-seed,2.3,,2026-10-28,entrackr,https://entrackr.com/snippets/ai-enterprise-startup-qwikbuild-raises-23-mn-in-pre-seed-round-12760872
-CHOSEN,,series_a,Series A,,,2026-10-28,entrackr,https://entrackr.com/snippets/skincare-brand-chosen-raises-extended-series-a-round-from-wellbeing-nutrition-founders-12758881
-Troovy,,series_b,Series B,11.5,,2026-10-27,entrackr,https://entrackr.com/news/fireside-ventures-leads-rs-100-cr-series-b-round-in-snack-brand-troovy-12755228
-Simplismart,,series_a,,14,,2026-10-27,entrackr,https://entrackr.com/news/simplismart-raises-14-mn-from-dallas-venture-capital-nvidia-and-others-12758191
-Rotoris,,series_a,Series A,8.05,,2026-10-27,entrackr,https://entrackr.com/news/luxury-watch-brand-rotoris-raises-rs-70-cr-in-series-a-round-led-by-blume-ventures-12757062
-Nova Spectral AI,,seed,,2.432,,2026-10-27,entrackr,https://entrackr.com/snippets/physical-ai-vision-company-nova-spectral-ai-raises-rs-2115-cr-led-by-shastra-vc-12756634
-Mochatrade,,seed,seed,5.5,,2026-10-27,entrackr,https://entrackr.com/snippets/trading-platform-mochatrade-raises-55-mn-in-seed-round-led-by-coinfund-12756221
-Maasi,,seed,pre-seed,0.69,,2026-10-27,entrackr,https://entrackr.com/snippets/child-care-startup-maasi-raises-rs-6-cr-in-pre-seed-round-12757624
-Live2.ai,,series_b,pre-Series B,14.95,,2026-10-27,entrackr,https://entrackr.com/news/ivycap-ventures-leads-rs-130-cr-pre-series-b-round-in-live2ai-12757291
-dubdub,,seed,seed,,,2026-10-27,entrackr,https://entrackr.com/snippets/trivia-and-puzzle-app-dubdub-raises-seed-funding-led-by-3one4-capital-antler-and-stellaris-12758123
-Cent,,series_a,,15,,2026-10-27,entrackr,https://entrackr.com/news/practo-co-founder-shashank-nds-startup-cent-raises-15-mn-led-by-blume-acquires-medsee-12757196
-Tradl,,seed,,4.1,,2026-10-26,inc42,https://inc42.com/buzz/exclusive-ai-powered-trading-platform-tradl-bags-4-1-mn-from-nexus-stellaris/
-ReplyAll,,series_a,pre-Series A,1.115,,2026-10-26,entrackr,https://entrackr.com/snippets/d2c-apparel-brand-replyall-raises-rs-97-cr-in-pre-series-a-round-12754832
 Paar Autonomy,,seed,,1.15,Advanced Hardware & Technology,2026-10-26,entrackr,https://entrackr.com/snippets/deep-tech-defence-startup-paar-autonomy-raises-rs-10-cr-12751873
-Matiks,,series_a,Pre-Series A,10,,2026-10-26,entrackr,https://entrackr.com/news/social-gaming-startup-matiks-raises-10-mn-in-pre-series-a-led-by-general-catalyst-12754114
 Bucketlistt.com,,seed,seed,0.874,,2026-10-26,entrackr,https://entrackr.com/snippets/kairon-capital-leads-rs-76-cr-seed-round-in-travel-tech-startup-bucketlisttcom-12752166
-BioStack,,seed,seed,9.5,,2026-10-26,entrackr,https://entrackr.com/snippets/healthcare-startup-biostack-raises-95-mn-in-seed-funding-led-by-peak-xv-12753841
 Vectorial,,seed,,3,AI,2026-10-24,inc42,https://inc42.com/buzz/from-even-health-to-the-pant-project-indian-startups-raised-over-184-mn-this-week/
 TravClan,,seed,,5,Travel Tech,2026-10-24,inc42,https://inc42.com/buzz/from-even-health-to-the-pant-project-indian-startups-raised-over-184-mn-this-week/
 The Pant Project,,series_b,Series B,11.5,Ecommerce,2026-10-24,inc42,https://inc42.com/buzz/from-even-health-to-the-pant-project-indian-startups-raised-over-184-mn-this-week/
@@ -75,6 +83,5 @@ Circle,,seed,Seed,2.6,Ecommerce,2026-10-17,inc42,https://inc42.com/buzz/from-bol
 Boldfit,,series_b,Series B,41.8,Ecommerce,2026-10-17,inc42,https://inc42.com/buzz/from-boldfit-to-origin-indian-startups-raised-about-236-mn-this-week/
 Battery Smart,,series_c_plus,Series C,10,,2026-10-17,entrackr,https://entrackr.com/exclusive/exclusive-battery-smart-tops-up-series-c-round-with-10-mn-12684307
 AdGraam,,seed,Seed,,AI,2026-10-17,inc42,https://inc42.com/buzz/from-boldfit-to-origin-indian-startups-raised-about-236-mn-this-week/
-CapGrid,,series_b,pre-Series B,,,2026-10-16,entrackr,https://entrackr.com/exclusive/exclusive-capgrid-kicks-off-pre-series-b-round-at-50-valuation-premium-12680865
 Banaraswala,,seed,,2,,2026-10-15,entrackr,https://entrackr.com/snippets/banaraswala-raises-2-mn-from-prax-impex-to-expand-across-india-12678454
 The/Nudge,,series_a,,15,,2026-10-14,entrackr,https://entrackr.com/snippets/googleorg-backs-thenudge-with-15-mn-to-digitise-indias-msmes-12676021
